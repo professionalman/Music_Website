@@ -16,7 +16,7 @@ const songRoutes = require('./routes/songRoutes');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 // ------------------------------------------
-const { protect, adminOnly } = require('./middleware/authMiddleware'); 
+const { protect, protectPage, adminOnly } = require('./middleware/authMiddleware'); 
 
 const app = express();
 
@@ -381,12 +381,12 @@ app.get('/favorite', (req, res) => {
 
 
 
-app.get('/account', protect, (req, res) => {
-    // req.user is attached by the 'protect' middleware
-    const user = req.user; 
+app.get('/account', protectPage, (req, res) => {
+    // For page routes, we don't pass user from server
+    // Client-side JS will fetch user data via API
     res.render('account', {
         title: 'Account Settings - My Music Player',
-        user: user // Pass user info into the view
+        user: null // Client-side will handle fetching user data
     });
 });
 

@@ -19,6 +19,16 @@
         }
     };
 
+    // Middleware for protecting page routes (renders, not API)
+    // This reads token from localStorage via client-side, so we just render the page
+    // and let client-side JS handle authentication
+    exports.protectPage = async (req, res, next) => {
+        // For page routes, we don't check server-side token
+        // Instead, we render the page and let client-side JS (account.js) handle auth
+        // by checking localStorage and redirecting if needed
+        next();
+    };
+
     exports.adminOnly = (req, res, next) => {
         if (req.user && req.user.role === 'admin') {
             next();

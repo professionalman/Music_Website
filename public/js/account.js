@@ -38,11 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const accountForm = document.getElementById('account-form');
 
-
-
     const usernameInput = accountForm.querySelector('input[name="username"]');
     const emailInput = accountForm.querySelector('input[name="email"]');
     const userIdInput = document.getElementById('user-id-display'); // Add this ID to EJS
+
+    console.log('Account.js loaded. UserInfo:', userInfo);
+    console.log('Form elements found:', { accountForm, usernameInput, emailInput, userIdInput });
 
     // --- STEP 1: CLIENT-SIDE PROTECTION ---
     if (!userInfo || !userInfo.token) {
@@ -54,24 +55,37 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- STEP 2: FETCH USER PROFILE FROM API ---
     async function fetchUserProfile() {
         try {
-            // Call new API to get profile
-            const response = await fetch('/api/user/profile', {
+            // Call new API to get profile (using correct endpoint /api/users)
+            const response = await fetch('/api/users/profile', {
                 headers: {
                     'Authorization': `Bearer ${userInfo.token}`
                 }
             });
-            if (!response.ok) throw new Error('Unable to load account information.');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Unable to load account information.');
+            }
 
             const user = await response.json();
 
             // Fill info into form
-            userIdInput.value = user._id;
-            usernameInput.value = user.username;
-            emailInput.value = user.email;
+            userIdInput.value = user._id || 'N/A';
+            usernameInput.value = user.username || '';
+            emailInput.value = user.email || '';
+
+            // Also update avatar preview if it exists
+            const avatarPreview = document.getElementById('avatar-preview');
+            if (avatarPreview && user.avatarUrl) {
+                avatarPreview.src = `/${user.avatarUrl}`;
+            }
 
         } catch (error) {
             console.error("Error fetching profile:", error);
-            // Can display error on page
+            // Show error in the UI
+            userIdInput.value = 'Error loading user data';
+            if (window.showNotification) {
+                window.showNotification(`Error: ${error.message}`, 'error');
+            }
         }
     }
 
@@ -96,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch('/api/user/update', {
+            const response = await fetch('/api/users/update', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -169,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(avatarForm);
 
         try {
-            const response = await fetch('/api/user/change-avatar', {
+            const response = await fetch('/api/users/change-avatar', {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${userInfo.token}`
@@ -253,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitButton.textContent = 'Changing...';
 
         try {
-            const response = await fetch('/api/user/change-password', {
+            const response = await fetch('/api/users/change-password', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
