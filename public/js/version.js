@@ -1,76 +1,76 @@
 // js/version.js
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Vùng chứa để hiển thị lịch sử commit
+    // Container to display commit history
     const container = document.getElementById('commit-history-container');
     
-    // Kiểm tra xem container có tồn tại không
+    // Check if container exists
     if (!container) {
-        console.error("Không tìm thấy #commit-history-container.");
+        console.error("Container #commit-history-container not found.");
         return;
     }
 
-    // URL của GitHub API cho repo của bạn
-    const owner = 'TranHuuDat2004';
-    const repo = 'mymusic';
+    // GitHub API URL for your repo
+    const owner = 'professionalman';
+    const repo = 'Music_Website';
     const apiUrl = `https://api.github.com/repos/${owner}/${repo}/commits`;
 
-    // Hàm để định dạng ngày tháng cho dễ đọc (ví dụ: "Ngày 27 tháng 10 năm 2023")
+    // Function to format date for readability
     function formatDate(isoString) {
         const date = new Date(isoString);
-        return new Intl.DateTimeFormat('vi-VN', {
+        return new Intl.DateTimeFormat('en-US', {
             dateStyle: 'full',
             timeStyle: 'medium'
         }).format(date);
     }
 
-    // Hàm bất đồng bộ để fetch dữ liệu
+    // Async function to fetch data
     async function fetchCommits() {
         try {
-            // Gọi API
+            // Call API
             const response = await fetch(apiUrl);
 
-            // Xử lý lỗi nếu API không trả về thành công (ví dụ: repo không tồn tại, hết lượt truy cập API)
+            // Handle error if API doesn't return successfully
             if (!response.ok) {
-                throw new Error(`Lỗi từ GitHub API: ${response.status} ${response.statusText}`);
+                throw new Error(`Error from GitHub API: ${response.status} ${response.statusText}`);
             }
 
-            // Chuyển đổi response sang JSON
+            // Convert response to JSON
             const commits = await response.json();
 
-            // Xóa thông báo "Đang tải..."
+            // Clear "Loading..." message
             container.innerHTML = '';
             
             if (commits.length === 0) {
-                 container.innerHTML = '<p>Không tìm thấy commit nào.</p>';
+                 container.innerHTML = '<p>No commits found.</p>';
                  return;
             }
 
-            // Lặp qua mỗi commit và tạo HTML
+            // Loop through each commit and create HTML
             commits.forEach(commitData => {
                 const { commit, html_url, author } = commitData;
 
-                // Tách message thành title và body (nếu có)
+                // Split message into title and body (if exists)
                 const messageParts = commit.message.split('\n\n');
                 const title = messageParts[0];
                 const body = messageParts.slice(1).join('\n\n');
 
-                // Tạo một card cho mỗi commit
+                // Create a card for each commit
                 const commitEntry = document.createElement('div');
                 commitEntry.className = 'commit-entry';
 
-                // Tạo tiêu đề (thông điệp commit)
+                // Create title (commit message)
                 const commitTitle = document.createElement('h3');
                 commitTitle.textContent = title;
 
-                // Tạo thông tin tác giả và ngày tháng
+                // Create author and date info
                 const commitMeta = document.createElement('p');
                 commitMeta.className = 'commit-meta';
                 commitMeta.innerHTML = `
-                    bởi <strong>${commit.author.name}</strong> vào ${formatDate(commit.author.date)}
+                    by <strong>${commit.author.name}</strong> on ${formatDate(commit.author.date)}
                 `;
 
-                // Tạo phần body của commit (nếu có)
+                // Create commit body (if exists)
                 let commitBody = null;
                 if (body) {
                     commitBody = document.createElement('pre');
@@ -78,15 +78,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     commitBody.textContent = body;
                 }
 
-                // Tạo link để xem chi tiết trên GitHub
+                // Create link to view details on GitHub
                 const commitLink = document.createElement('a');
                 commitLink.href = html_url;
-                commitLink.textContent = 'Xem chi tiết trên GitHub';
-                commitLink.target = '_blank'; // Mở trong tab mới
+                commitLink.textContent = 'View details on GitHub';
+                commitLink.target = '_blank'; // Open in new tab
                 commitLink.rel = 'noopener noreferrer';
                 commitLink.className = 'commit-link';
 
-                // Gắn các phần tử con vào card
+                // Append child elements to card
                 commitEntry.appendChild(commitTitle);
                 commitEntry.appendChild(commitMeta);
                 if (commitBody) {
@@ -94,16 +94,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 commitEntry.appendChild(commitLink);
 
-                // Gắn card commit vào container chính
+                // Append commit card to main container
                 container.appendChild(commitEntry);
             });
 
         } catch (error) {
-            console.error('Không thể fetch commit từ GitHub:', error);
-            container.innerHTML = `<p class="error-message">Đã xảy ra lỗi khi tải lịch sử phiên bản. Vui lòng thử lại sau. <br><small>${error.message}</small></p>`;
+            console.error('Unable to fetch commits from GitHub:', error);
+            container.innerHTML = `<p class="error-message">An error occurred while loading version history. Please try again later. <br><small>${error.message}</small></p>`;
         }
     }
 
-    // Gọi hàm để bắt đầu fetch
+    // Call function to start fetching
     fetchCommits();
 });
