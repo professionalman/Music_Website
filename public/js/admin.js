@@ -106,12 +106,20 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(data.message || "Upload failed");
       }
 
-      setStatus('Upload successful! Redirecting to manage songs...');
+      // Check if cover was extracted from audio
+      if (data.coverExtracted) {
+        setStatus('Upload successful! ✨ Cover art was automatically extracted from the audio file. Redirecting...');
+      } else if (data.song && data.song.artUrl) {
+        setStatus('Upload successful! Using your uploaded cover image. Redirecting...');
+      } else {
+        setStatus('Upload successful! No cover art available. Redirecting...');
+      }
+      
       form.reset();
-      // Redirect to manage songs page after 1 second
+      // Redirect to manage songs page after 2 seconds
       setTimeout(() => {
         window.location.href = '/admin_songs';
-      }, 1000);
+      }, 2000);
     } catch (err) {
       setStatus(err.message || "Upload error", true);
     }

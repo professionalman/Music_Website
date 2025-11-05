@@ -10,6 +10,37 @@ const { protect, adminOnly } = require('../middleware/authMiddleware'); // ✅ a
 const fs = require('fs');
 const multer = require('multer');
 const upload = require('../middleware/uploadMiddleware');
+const { extractCoverArt, extractMetadata } = require('../utils/audioMetadata');
+
+// POST /api/admin/extract-metadata - Extract metadata from uploaded audio (for preview/debugging)
+router.post(
+    '/extract-metadata',
+    protect,
+    adminOnly,
+    uploadSongAssets.single('audio'),
+    async (req, res) => {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ message: 'Audio file is required' });
+            }
+
+            const audioAbsPath = req.file.path;
+            const metadata = await extractMetadata(audioAbsPath);
+            
+            // Clean up the temporary file
+            fs.unlinkSync(audioAbsPath);
+            
+            return res.json({
+                message: 'Metadata extracted',
+                metadata
+            });
+        } catch (err) {
+            console.error('Extract metadata error:', err);
+            return res.status(500).json({ message: 'Error extracting metadata', error: err.message });
+        }
+    }
+);
+
 router.post(
     '/songs',
     protect,              
@@ -29,10 +60,29 @@ router.post(
 
             const audioFile = req.files?.audio?.[0];
             if (!audioFile) return res.status(400).json({ message: 'Audio file is required' });
+            
             const coverFile = req.files?.cover?.[0];
 
             const audioSrc = path.posix.join('audio', path.basename(audioFile.path));
-            const artUrl = coverFile ? path.posix.join('img', path.basename(coverFile.path)) : '';
+            let artUrl = '';
+
+            // If cover is provided, use it
+            if (coverFile) {
+                artUrl = path.posix.join('img', path.basename(coverFile.path));
+                console.log('[UPLOAD] Using uploaded cover:', artUrl);
+            } else {
+                // Try to extract cover art from audio file
+                console.log('[UPLOAD] No cover uploaded, attempting to extract from audio...');
+                const audioAbsPath = path.join(__dirname, '..', '..', 'public', 'audio', path.basename(audioFile.path));
+                const extractedCover = await extractCoverArt(audioAbsPath);
+                
+                if (extractedCover) {
+                    artUrl = extractedCover;
+                    console.log('[UPLOAD] Extracted cover from audio:', artUrl);
+                } else {
+                    console.log('[UPLOAD] No embedded cover found, song will have no cover');
+                }
+            }
 
             const newSong = await Song.create({
                 title,
@@ -42,7 +92,11 @@ router.post(
                 audioSrc
             });
 
-            return res.status(201).json({ message: 'Song uploaded', song: newSong });
+            return res.status(201).json({ 
+                message: 'Song uploaded', 
+                song: newSong,
+                coverExtracted: !coverFile && artUrl ? true : false
+            });
         } catch (err) {
             console.error('Upload song error:', err);
             return res.status(500).json({ message: 'Server error uploading song' });
@@ -80,7 +134,20 @@ router.put(
 
             if (audioFile) {
                 song.audioSrc = path.posix.join('audio', path.basename(audioFile.path));
+                
+                // If new audio is uploaded and no cover is provided, try to extract cover
+                if (!coverFile) {
+                    console.log('[UPDATE] New audio uploaded, attempting to extract cover...');
+                    const audioAbsPath = path.join(__dirname, '..', '..', 'public', 'audio', path.basename(audioFile.path));
+                    const extractedCover = await extractCoverArt(audioAbsPath);
+                    
+                    if (extractedCover) {
+                        song.artUrl = extractedCover;
+                        console.log('[UPDATE] Extracted cover from new audio:', extractedCover);
+                    }
+                }
             }
+            
             if (coverFile) {
                 song.artUrl = path.posix.join('img', path.basename(coverFile.path));
             }
@@ -94,7 +161,7 @@ router.put(
                     const oldAudioAbs = path.join(publicRoot, oldAudio);
                     if (fs.existsSync(oldAudioAbs)) fs.unlinkSync(oldAudioAbs);
                 }
-                if (coverFile && oldArt) {
+                if ((coverFile || (audioFile && !coverFile && song.artUrl !== oldArt)) && oldArt) {
                     const oldArtAbs = path.join(publicRoot, oldArt);
                     if (fs.existsSync(oldArtAbs)) fs.unlinkSync(oldArtAbs);
                 }
