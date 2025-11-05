@@ -1,0 +1,211 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+
+    <!-- Fixed CSS Path -->
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" href="/img/favicon.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        /* About page specific styles */
+        .about-content-wrapper {
+            padding: 20px 30px;
+            line-height: 1.6;
+        }
+
+        .about-content-wrapper h1 {
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .about-content-wrapper h2 {
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        .about-content-wrapper p {
+            margin-bottom: 15px;
+            color: #b3b3b3;
+        }
+
+        .about-content-wrapper ul {
+            list-style: disc;
+            margin-left: 20px;
+            margin-bottom: 15px;
+            color: #b3b3b3;
+        }
+
+        .about-content-wrapper a {
+            color: #1DB954;
+            text-decoration: underline;
+        }
+
+        .about-content-wrapper a:hover {
+            color: #1ed760;
+        }
+
+        .btn-outline-dark {
+            display: inline-block;
+            font-weight: 400;
+            color: #ccc;
+            text-align: center;
+            vertical-align: middle;
+            cursor: pointer;
+            user-select: none;
+            background-color: transparent;
+            border: 1px solid #555;
+            padding: .375rem .75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-radius: .25rem;
+            text-decoration: none;
+            transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+        }
+
+        .btn-outline-dark:hover {
+            color: #fff;
+            background-color: #343a40;
+            border-color: #343a40;
+        }
+
+        .btn-outline-dark .fab {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="menu-toggle-btn" aria-label="Toggle menu"></button>
+    <audio id="audio-player"></audio>
+
+    <div class="music-player-container">
+        <!-- Sidebar -->
+        <nav id="sidebar-container" class="sidebar"></nav>
+
+        <main class="main-content" id="about-content-container">
+            <div class="about-content-wrapper">
+                <h1 class="text-center mb-4">About MyMusic Player</h1>
+
+                <p class="lead text-center mb-5">
+                    MyMusic Player is an online music streaming platform designed and developed to provide a simple,
+                    modern, and intuitive listening experience, inspired by popular platforms like Spotify and Apple Music.
+                </p>
+
+                <section class="mb-5">
+                    <h2 class="h4 border-bottom pb-2 mb-3">Project Goals</h2>
+                    <p>The main objective of the project is to build a full-stack web application showcasing the ability to develop
+                        both user interface (UI/UX) and backend functionality for a music streaming platform, focusing on:</p>
+                    <ul>
+                        <li><strong>Interface Design:</strong> Create a clean, aesthetically pleasing, and user-friendly layout.</li>
+                        <li><strong>Core Functionality:</strong> Implement essential music player features like play/pause,
+                            progress bar, and volume control.</li>
+                        <li><strong>Content Management:</strong> Build an admin panel for managing songs, artists, and playlists dynamically.</li>
+                        <li><strong>User Authentication:</strong> Implement secure login system with role-based access control (admin, artist, user).</li>
+                        <li><strong>Responsive Design:</strong> Ensure the app adapts well across devices, from desktop to mobile.</li>
+                        <li><strong>Dynamic Interactions:</strong> Use JavaScript for smooth, interactive UI updates.</li>
+                        <li><strong>Database Integration:</strong> Store and retrieve music data, user information, and playlists from MongoDB.</li>
+                        <li><strong>File Upload System:</strong> Allow admins to upload audio files and cover images.</li>
+                        <li><strong>Advanced Controls:</strong> Add familiar playback options like shuffle and repeat modes.</li>
+                    </ul>
+                    <p><em>The project serves as hands-on practice to strengthen full-stack development skills.</em></p>
+                </section>
+
+                <section class="mb-5">
+                    <h2 class="h4 border-bottom pb-2 mb-3">Technology Stack</h2>
+                    <p>MyMusic Player is built with modern web technologies:</p>
+                    <ul>
+                        <li><strong>Frontend:</strong>
+                            <ul>
+                                <li>HTML5, CSS3 (Flexbox, Grid, CSS variables)</li>
+                                <li>JavaScript (ES6+) for dynamic interactions</li>
+                                <li>EJS templating engine for server-side rendering</li>
+                            </ul>
+                        </li>
+                        <li><strong>Backend:</strong>
+                            <ul>
+                                <li>Node.js with Express.js framework</li>
+                                <li>MongoDB with Mongoose ODM</li>
+                                <li>JWT authentication for secure access</li>
+                                <li>Multer for file upload handling</li>
+                            </ul>
+                        </li>
+                        <li><strong>Features:</strong>
+                            <ul>
+                                <li>RESTful API architecture</li>
+                                <li>Role-based access control (RBAC)</li>
+                                <li>File storage and management system</li>
+                                <li>Dynamic playlist and artist management</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="mb-5">
+                    <h2 class="h4 border-bottom pb-2 mb-3">Key Features</h2>
+                    <ul>
+                        <li><strong>User Features:</strong>
+                            <ul>
+                                <li>Browse songs by playlists and artists</li>
+                                <li>Search functionality for songs and artists</li>
+                                <li>Create and manage personal playlists</li>
+                                <li>Mark songs as favorites</li>
+                                <li>Full music player controls with queue management</li>
+                            </ul>
+                        </li>
+                        <li><strong>Admin Features:</strong>
+                            <ul>
+                                <li>Upload and manage songs with audio files and cover art</li>
+                                <li>Create and manage artist profiles</li>
+                                <li>Edit and delete existing content</li>
+                                <li>View and organize all music library</li>
+                            </ul>
+                        </li>
+                        <li><strong>Artist Features:</strong>
+                            <ul>
+                                <li>View personal artist profile</li>
+                                <li>Track songs associated with their profile</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="mb-4">
+                    <h2 class="h4 border-bottom pb-2 mb-3">Developer Information</h2>
+                    <p>Developed by <strong>Trần Hữu Đạt</strong>.</p>
+                    <p>For more projects or contact, visit the GitHub profile:</p>
+                    <p><a href="https://github.com/TranHuuDat2004/" target="_blank" rel="noopener noreferrer"
+                            class="btn btn-outline-dark">
+                            <i class="fab fa-github"></i>
+                            View on GitHub
+                        </a></p>
+                </section>
+                <hr>
+                <p class="text-center text-muted mt-4">Thank you for exploring MyMusic Player!</p>
+
+                <div id="footer-placeholder"></div>
+            </div>
+        </main>
+        
+        <footer id="player-bar-container"></footer>
+        <div id="now-playing-fullscreen-container"></div>
+        <div id="notification-container"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/utils.js" defer></script>
+    <script src="/js/player.js" defer></script>
+    <script src="/js/sidebar.js" defer></script>
+    <script src="/js/appendMainFooter.js" defer></script>
+</body>
+
+</html>

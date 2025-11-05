@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title> 
+    
+    <link rel="stylesheet" href="css/styles.css"> 
+    <link rel="icon" href="/img/favicon.png" type="image/png">
+</head>
+<body>
+    <button class="menu-toggle-btn" aria-label="Toggle menu">☰</button>
+    <audio id="audio-player"></audio>
+
+    <div class="music-player-container">
+        <nav id="sidebar-container" class="sidebar"></nav>
+
+        <main class="main-content" id="all-playlists-content">
+            <h1>All Playlists</h1>
+            
+            <div class="card-grid">
+                <% if (playlists && playlists.length > 0) { %>
+                    <% playlists.forEach(playlist => { %>
+                        <a href="/playlist.html?id=<%= playlist._id %>" class="card playlist-card">
+                            <% 
+                                // Get cover art of first song, or fallback image
+                                const coverArt = (playlist.songs && playlist.songs.length > 0 && playlist.songs[0].artUrl) 
+                                                 ? playlist.songs[0].artUrl 
+                                                 : 'img/song-holder.png';
+                            %>
+                            <img src="/<%= coverArt %>" alt="<%= playlist.title %>" class="album-art" loading="lazy">
+                            <h3 class="song-title"><%= playlist.title %></h3>
+                            <p class="song-artist">Playlist</p>
+                        </a>
+                    <% }); %>
+                <% } else { %>
+                    <p>No playlists to display.</p>
+                <% } %>
+            </div>
+
+            <!-- All Songs List Section -->
+            <div id="all-songs-section" style="margin-top: 40px;">
+                <h2 style="margin-bottom: 20px; color: #ffffff;">All Songs</h2>
+                <div class="song-list-container">
+                    <div class="song-list-header song-list-item">
+                        <span class="song-index">#</span>
+                        <span class="song-art-placeholder"></span>
+                        <div class="song-details">
+                            <div class="song-title">TITLE</div>
+                        </div>
+                        <div class="song-artist-column">ARTIST</div>
+                        <div class="song-plays">PLAYS</div>
+                        <div class="song-duration">DURATION</div>
+                        <div class="song-actions">ACTIONS</div>
+                    </div>
+                    <div id="all-songs-list"></div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer id="player-bar-container"></footer>
+        <div id="now-playing-fullscreen-container"></div>
+        <div id="notification-container"></div>
+    </div>
+
+    <script src="/js/utils.js" defer></script>
+    <script src="/js/player.js" defer></script>
+    <script src="/js/sidebar.js" defer></script>
+    <script src="/js/appendMainFooter.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const allSongsList = document.getElementById('all-songs-list');
+            if (!allSongsList) return;
+
+            try {
+                // Fetch all songs
+                const res = await fetch('/api/songs');
+                if (!res.ok) throw new Error('Failed to load songs');
+                const songs = await res.json();
+
+                if (!songs || songs.length === 0) {
+                    allSongsList.innerHTML = '<p style="color: #b3b3b3; padding: 20px;">No songs available.</p>';
+                    return;
+                }
+
+                // Check if user is admin
+                let isAdmin = false;
+                try {
+                    const userInfo = JSON.parse(localStorage.getItem('userInfo') || 'null');
+                    isAdmin = userInfo && userInfo.role === 'admin';
+                } catch (err) {
+                    console.error('Error checking admin status:', err);
+                }
+
+                // Render songs
+                allSongsList.innerHTML = songs.map((song, index) => {
+                    const imageUrl = song.artUrl ? `/${song.artUrl}` : '/img/song-holder.png';
+                    return `
+                        <div class="song-list-item" data-id="${song._id}" data-src="${song.audioSrc || ''}" 
+                             data-title="${(song.title || '').replace(/"/g, '&quot;')}" 
+                             data-artist="${(song.artistName || '').replace(/"/g, '&quot;')}" 
+                             data-art="${song.artUrl || ''}">
+                            <span class="song-index">${index + 1}</span>
+                            <img src="${imageUrl}" alt="${(song.title || 'Art').replace(/"/g, '&quot;')}" class="album-art-small" onerror="this.src='/img/song-holder.png'">
+                            <div class="song-details">
+                                <div class="song-title">${(song.title || 'Untitled').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+                            </div>
+                            <div class="song-artist-column">${(song.artistName || 'Unknown Artist').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+                            <div class="song-plays">${(song.plays || 0).toLocaleString('en-US')}</div>
+                            <div class="song-duration">--:--</div>
+                            <div class="song-actions">
+                                ${isAdmin ? `
+                                    <button class="icon-btn btn-edit-all-songs" title="Edit Song" data-song-id="${song._id}" style="display: block;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.0001 1.0001 0 0 0 0-1.41l-2.34-2.34a1.0001 1.0001 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/>
+                                        </svg>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Attach click listeners for edit buttons
+                if (isAdmin) {
+                    const editButtons = allSongsList.querySelectorAll('.btn-edit-all-songs');
+                    editButtons.forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const songId = btn.dataset.songId;
+                            if (songId) {
+                                window.location.href = `/admin_song?id=${encodeURIComponent(songId)}`;
+                            }
+                        });
+                    });
+                }
+
+                // Attach click listeners for playing songs
+                const songItems = allSongsList.querySelectorAll('.song-list-item[data-src]');
+                songItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        // Don't trigger play if clicking on edit button
+                        if (e.target.closest('.btn-edit-all-songs')) {
+                            return;
+                        }
+                        const songData = {
+                            _id: item.dataset.id,
+                            audioSrc: item.dataset.src,
+                            title: item.dataset.title,
+                            artistName: item.dataset.artist,
+                            artUrl: item.dataset.art
+                        };
+
+                        // Create playlist context from all songs
+                        const playlistContext = Array.from(songItems).map(songItem => ({
+                            _id: songItem.dataset.id,
+                            audioSrc: songItem.dataset.src,
+                            title: songItem.dataset.title,
+                            artistName: songItem.dataset.artist,
+                            artUrl: songItem.dataset.art,
+                            artistData: songItem.dataset.artist
+                        }));
+
+                        if (typeof window.playSongFromData === 'function') {
+                            window.playSongFromData(songData, playlistContext);
+                        }
+                    });
+                });
+
+            } catch (err) {
+                console.error('Error loading songs:', err);
+                allSongsList.innerHTML = '<p style="color: #e03131; padding: 20px;">Error loading songs. Please try again.</p>';
+            }
+        });
+    </script>
+</body>
+</html>

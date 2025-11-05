@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" href="/img/favicon.png" type="image/png">
+</head>
+
+<body>
+    <button class="menu-toggle-btn" aria-label="Toggle menu">☰</button>
+    <audio id="audio-player"></audio>
+
+    <div class="music-player-container">
+        <nav id="sidebar-container" class="sidebar"></nav>
+        
+        <main class="main-content" id="library-content-container">
+            <div id="library-songs-display" class="card-grid"> <p class="loading-message">Loading library...</p>
+            </div>
+            
+            </main>
+
+        <footer id="player-bar-container"></footer>
+        <div id="now-playing-fullscreen-container"></div>
+        <div id="notification-container"></div>
+    </div>
+
+    <script src="/js/utils.js" defer></script>
+    <script src="/js/player.js" defer></script>
+    <script src="/js/sidebar.js" defer></script>
+    <script src="/js/library.js" defer></script> <script src="/js/appendMainFooter.js" defer></script>
+</body>
+</html>

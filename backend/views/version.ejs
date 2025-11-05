@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" href="/img/favicon.png" type="image/png">
+    <style>
+        /* CSS for version page */
+        #commit-history-container {
+            margin-top: 20px;
+        }
+
+        .commit-item {
+            background-color: #181818;
+            border-left: 4px solid #333;
+            padding: 15px 20px;
+            /* Slightly increased right padding */
+            margin-bottom: 15px;
+            border-radius: 4px;
+
+            /* --- START MODIFICATION --- */
+            display: flex;
+            /* Turn into flex container */
+            justify-content: space-between;
+            /* Push element groups to sides */
+            align-items: center;
+            /* Vertically center elements */
+            gap: 15px;
+            /* Create space between elements */
+            /* --- END MODIFICATION --- */
+        }
+
+        .commit-item:hover {
+            border-left-color: #1DB954;
+        }
+
+        .commit-message {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            /* Reduced margin bottom */
+            color: #fff;
+        }
+
+        .commit-meta {
+            font-size: 0.9em;
+            color: #b3b3b3;
+        }
+
+        .commit-meta .author {
+            font-weight: bold;
+        }
+
+        /* --- START MODIFICATION FOR BUTTON --- */
+        .commit-link {
+            /* Removed float and unnecessary properties */
+            color: #b3b3b3;
+            background-color: #282828;
+            border: 1px solid #444;
+            padding: 6px 12px;
+            border-radius: 20px;
+            /* Rounded button */
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.85em;
+            white-space: nowrap;
+            /* Prevent button text wrapping */
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .commit-link:hover {
+            background-color: #333;
+            color: #fff;
+            text-decoration: none;
+            /* Kept to be sure */
+        }
+
+        /* --- END MODIFICATION FOR BUTTON --- */
+
+        /* Group message and meta for easier arrangement */
+        .commit-details {
+            flex-grow: 1;
+            /* Allow this group to stretch to take up extra space */
+        }
+    </style>
+</head>
+
+<body>
+    <button class="menu-toggle-btn" aria-label="Toggle menu">☰</button>
+    <audio id="audio-player"></audio>
+
+    <div class="music-player-container">
+        <nav id="sidebar-container" class="sidebar"></nav>
+
+        <main class="main-content">
+            <h1>Version History (Fetched from GitHub)</h1>
+            <p>Data is automatically updated from the source code repository <a href="https://github.com/TranHuuDat2004/mymusic"
+                    target="_blank" rel="noopener noreferrer">TranHuuDat2004/mymusic</a>.</p>
+
+            <div id="commit-history-container">
+                <p class="loading-message">Loading commit history...</p>
+            </div>
+
+            </main>
+
+        <footer id="player-bar-container"></footer>
+        <div id="now-playing-fullscreen-container"></div>
+        <div id="notification-container"></div>
+    </div>
+
+    <script src="/js/utils.js" defer></script>
+    <script src="/js/player.js" defer></script>
+    <script src="/js/sidebar.js" defer></script>
+    <script src="/js/appendMainFooter.js" defer></script>
+    <script src="/js/version.js" defer></script>
+</body>
+
+</html>

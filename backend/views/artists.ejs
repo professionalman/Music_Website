@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" href="/img/favicon.png" type="image/png">
+    <style>
+        /* You can keep these styles or move them to styles.css */
+        .artists-main-title {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #ffffff;
+        }
+        .card.artist-card {
+            text-decoration: none; /* Remove underline from a tag */
+            color: inherit; /* Inherit text color */
+            display: block; /* Make a tag take up full card space */
+            background-color: #181818;
+            transition: background-color 0.3s;
+        }
+        .card.artist-card:hover {
+            background-color: #282828;
+        }
+        .card.artist-card .album-art {
+            border-radius: 50%; /* Display avatar as circle */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .card.artist-card .artist-card-name {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #fff;
+        }
+        .card.artist-card .artist-card-type {
+            text-align: center;
+            font-size: 0.9em;
+            color: #b3b3b3;
+        }
+        .artist-card-wrapper {
+            position: relative;
+        }
+        .artist-actions {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle-btn" aria-label="Toggle menu">☰</button>
+    <audio id="audio-player"></audio>
+
+    <div class="music-player-container">
+        <nav id="sidebar-container" class="sidebar"></nav>
+
+        <main class="main-content" id="artists-list-container">
+            <h1 class="artists-main-title">Artists</h1>
+            
+            <!-- Admin Add Artist Button -->
+            <div id="admin-add-artist-section" style="display: none; margin-bottom: 20px;">
+                <button id="show-add-artist-form-btn" class="primary-btn" style="margin-bottom: 20px;">+ Add New Artist</button>
+            </div>
+            
+            <!-- Admin Add Artist Form (hidden by default) -->
+            <div id="artist-add-form-container" class="admin-upload-container" style="display: none; margin-bottom: 30px;">
+                <form id="artist-add-form" class="upload-form">
+                    <div class="form-section">
+                        <h2>Add New Artist</h2>
+                        <div class="form-row">
+                            <label for="new-artist-username">Username</label>
+                            <input type="text" id="new-artist-username" name="username" placeholder="Enter username" required>
+                        </div>
+                        <div class="form-row">
+                            <label for="new-artist-email">Email</label>
+                            <input type="email" id="new-artist-email" name="email" placeholder="Enter email" required>
+                        </div>
+                        <div class="form-row">
+                            <label for="new-artist-password">Password</label>
+                            <input type="password" id="new-artist-password" name="password" placeholder="Enter password (min 6 characters)" required minlength="6">
+                        </div>
+                    </div>
+                    <div class="form-section">
+                        <h2>Avatar</h2>
+                        <div class="form-row">
+                            <label for="new-artist-avatar">Avatar Image (Optional)</label>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="new-artist-avatar" name="avatar" accept="image/*">
+                                <span class="file-input-text">Choose avatar image...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="primary-btn">Create Artist</button>
+                        <button type="button" id="cancel-add-btn" class="secondary-btn" style="margin-left: 10px;">Cancel</button>
+                        <div id="artist-add-status" class="upload-status"></div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Admin Edit Form (hidden by default, shown when editing) -->
+            <div id="artist-edit-form-container" class="admin-upload-container" style="display: none; margin-bottom: 30px;">
+                <form id="artist-edit-form" class="upload-form">
+                    <div class="form-section">
+                        <h2>Edit Artist</h2>
+                        <div class="form-row">
+                            <label for="artist-username">Username</label>
+                            <input type="text" id="artist-username" name="username" placeholder="Enter username" required>
+                        </div>
+                        <div class="form-row">
+                            <label for="artist-email">Email</label>
+                            <input type="email" id="artist-email" name="email" placeholder="Enter email" required>
+                        </div>
+                    </div>
+                    <div class="form-section">
+                        <h2>Avatar</h2>
+                        <div class="form-row">
+                            <label for="artist-avatar">Avatar Image (Optional - only upload if replacing)</label>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="artist-avatar" name="avatar" accept="image/*">
+                                <span class="file-input-text">Choose avatar image...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="primary-btn">Save Changes</button>
+                        <button type="button" id="cancel-edit-btn" class="secondary-btn" style="margin-left: 10px;">Cancel</button>
+                        <div id="artist-edit-status" class="upload-status"></div>
+                    </div>
+                </form>
+            </div>
+            
+            <div id="artists-grid" class="card-grid">
+                <!-- Debug: Artists count = <%= artists ? artists.length : 'undefined' %> -->
+                <% if (typeof artists !== 'undefined' && artists && Array.isArray(artists)) { %>
+                <% artists.forEach(artist => { %>
+                    <div class="card artist-card-wrapper" data-artist-id="<%= artist._id %>">
+                        <a href="/artist?artistId=<%= artist._id %>" class="card artist-card" style="position: relative;">
+                            <img src="/<%= artist.avatarUrl || 'img/singer-holder.png' %>" alt="Avatar of <%= artist.name %>" class="album-art" loading="lazy">
+                            <h3 class="artist-card-name"><%= artist.name %></h3>
+                            <p class="artist-card-type">Artist</p>
+                        </a>
+                        <div class="artist-actions" style="display: none; position: absolute; top: 10px; right: 10px; gap: 8px; z-index: 10;">
+                            <button class="icon-btn btn-edit-artist" title="Edit Artist" data-artist-id="<%= artist._id %>">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.0001 1.0001 0 0 0 0-1.41l-2.34-2.34a1.0001 1.0001 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            <button class="icon-btn btn-delete-artist" title="Delete Artist" data-artist-id="<%= artist._id %>">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M6 19c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                <% }); %>
+                <% } else { %>
+                    <div style="text-align: center; padding: 40px; color: #e03131;">
+                        <p style="font-size: 1.2em; margin-bottom: 10px;">Error: Artists data is not available.</p>
+                        <p style="font-size: 0.9em;">Type: <%= typeof artists %>, IsArray: <%= Array.isArray(artists) %></p>
+                    </div>
+                <% } %>
+
+                <% if (typeof artists !== 'undefined' && artists && Array.isArray(artists) && artists.length === 0) { %>
+                    <div style="text-align: center; padding: 40px; color: #b3b3b3;">
+                        <p style="font-size: 1.2em; margin-bottom: 10px;">No artists in library.</p>
+                        <p style="font-size: 0.9em;">Register users with 'artist' role or add artists through admin panel.</p>
+                    </div>
+                <% } %>
+            </div>
+            
+            </main>
+
+        <footer id="player-bar-container"></footer>
+        <div id="now-playing-fullscreen-container"></div>
+        <div id="notification-container"></div>
+    </div>
+
+    <script src="/js/utils.js" defer></script>
+    <script src="/js/player.js" defer></script>
+    <script src="/js/sidebar.js" defer></script>
+    <script src="/js/appendMainFooter.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if user is admin
+            let isAdmin = false;
+            try {
+                const userInfoStr = localStorage.getItem('userInfo');
+                if (userInfoStr) {
+                    const userInfo = JSON.parse(userInfoStr);
+                    isAdmin = userInfo && userInfo.role === 'admin';
+                }
+            } catch (err) {
+                console.error('Error checking admin status:', err);
+                // Clear invalid data
+                localStorage.removeItem('userInfo');
+            }
+
+            // Show edit/delete buttons and add artist button for admins
+            if (isAdmin) {
+                const actionButtons = document.querySelectorAll('.artist-actions');
+                actionButtons.forEach(btn => btn.style.display = 'flex');
+                
+                // Show add artist button
+                const addArtistSection = document.getElementById('admin-add-artist-section');
+                if (addArtistSection) {
+                    addArtistSection.style.display = 'block';
+                }
+            }
+            
+            // Add Artist Form
+            const addFormContainer = document.getElementById('artist-add-form-container');
+            const addForm = document.getElementById('artist-add-form');
+            const showAddBtn = document.getElementById('show-add-artist-form-btn');
+            const cancelAddBtn = document.getElementById('cancel-add-btn');
+            const addStatusDiv = document.getElementById('artist-add-status');
+            
+            function setAddStatus(message, isError = false) {
+                if (addStatusDiv) {
+                    addStatusDiv.textContent = message;
+                    addStatusDiv.style.color = isError ? 'red' : 'green';
+                }
+            }
+            
+            // Show add form
+            if (showAddBtn) {
+                showAddBtn.addEventListener('click', () => {
+                    addFormContainer.style.display = 'block';
+                    addFormContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // Hide edit form if open
+                    if (editFormContainer) editFormContainer.style.display = 'none';
+                });
+            }
+            
+            // Cancel add
+            if (cancelAddBtn) {
+                cancelAddBtn.addEventListener('click', () => {
+                    addFormContainer.style.display = 'none';
+                    addForm.reset();
+                    setAddStatus('');
+                });
+            }
+            
+            // File input preview for add form
+            const newAvatarInput = document.getElementById('new-artist-avatar');
+            if (newAvatarInput) {
+                const wrapper = newAvatarInput.closest('.file-input-wrapper');
+                const textEl = wrapper ? wrapper.querySelector('.file-input-text') : null;
+                newAvatarInput.addEventListener('change', () => {
+                    if (textEl && newAvatarInput.files && newAvatarInput.files.length > 0) {
+                        const f = newAvatarInput.files[0];
+                        const sizeKB = Math.round(f.size / 1024);
+                        textEl.textContent = `${f.name} (${sizeKB} KB)`;
+                    } else if (textEl) {
+                        textEl.textContent = 'Choose avatar image...';
+                    }
+                });
+            }
+            
+            // Add form submit
+            if (addForm) {
+                addForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    setAddStatus('Creating artist...');
+                    
+                    try {
+                        const userInfoStr = localStorage.getItem('userInfo');
+                        if (!userInfoStr) throw new Error('Not authenticated. Please log in again.');
+                        const userInfo = JSON.parse(userInfoStr);
+                        const token = userInfo?.token;
+                        if (!token) throw new Error('Not authenticated');
+                        
+                        const formData = new FormData(addForm);
+                        formData.append('role', 'artist'); // Set role to artist
+                        
+                        const res = await fetch('/api/admin/artists', {
+                            method: 'POST',
+                            headers: { Authorization: `Bearer ${token}` },
+                            body: formData
+                        });
+                        
+                        const contentType = res.headers.get('content-type');
+                        let data;
+                        if (contentType && contentType.includes('application/json')) {
+                            data = await res.json();
+                        } else {
+                            const text = await res.text();
+                            throw new Error(`Server error: ${text.substring(0, 100)}`);
+                        }
+                        if (!res.ok) throw new Error(data.message || 'Create failed');
+                        
+                        setAddStatus('Artist created successfully!');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } catch (err) {
+                        setAddStatus(err.message || 'Error', true);
+                    }
+                });
+            }
+
+            const editFormContainer = document.getElementById('artist-edit-form-container');
+            const editForm = document.getElementById('artist-edit-form');
+            const cancelBtn = document.getElementById('cancel-edit-btn');
+            const statusDiv = document.getElementById('artist-edit-status');
+            let currentEditingId = null;
+
+            function setStatus(message, isError = false) {
+                if (statusDiv) {
+                    statusDiv.textContent = message;
+                    statusDiv.style.color = isError ? 'red' : 'green';
+                }
+            }
+
+            // File input preview
+            const avatarInput = document.getElementById('artist-avatar');
+            if (avatarInput) {
+                const wrapper = avatarInput.closest('.file-input-wrapper');
+                const textEl = wrapper ? wrapper.querySelector('.file-input-text') : null;
+                avatarInput.addEventListener('change', () => {
+                    if (textEl && avatarInput.files && avatarInput.files.length > 0) {
+                        const f = avatarInput.files[0];
+                        const sizeKB = Math.round(f.size / 1024);
+                        textEl.textContent = `${f.name} (${sizeKB} KB)`;
+                    } else if (textEl) {
+                        textEl.textContent = 'Choose avatar image...';
+                    }
+                });
+            }
+
+            // Edit button click
+            document.querySelectorAll('.btn-edit-artist').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const artistId = btn.dataset.artistId;
+                    
+                    try {
+                        const res = await fetch(`/api/artists/${artistId}`);
+                        if (!res.ok) {
+                            const errorText = await res.text();
+                            throw new Error(`Failed to load artist: ${res.status} ${res.statusText}`);
+                        }
+                        const contentType = res.headers.get('content-type');
+                        if (!contentType || !contentType.includes('application/json')) {
+                            throw new Error('Invalid response format from server');
+                        }
+                        const artist = await res.json();
+                        
+                        // Populate form
+                        document.getElementById('artist-username').value = artist.name || artist.username || '';
+                        document.getElementById('artist-email').value = artist.email || '';
+                        currentEditingId = artistId;
+                        
+                        // Show form and scroll to it
+                        editFormContainer.style.display = 'block';
+                        editFormContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        setStatus('Editing artist - make changes and click Save');
+                    } catch (err) {
+                        setStatus('Failed to load artist', true);
+                    }
+                });
+            });
+
+            // Delete button click
+            document.querySelectorAll('.btn-delete-artist').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const artistId = btn.dataset.artistId;
+                    
+                    if (!confirm('Delete this artist? This action cannot be undone.')) return;
+                    
+                    try {
+                        const userInfoStr = localStorage.getItem('userInfo');
+                        if (!userInfoStr) throw new Error('Not authenticated. Please log in again.');
+                        const userInfo = JSON.parse(userInfoStr);
+                        const token = userInfo?.token;
+                        if (!token) throw new Error('Not authenticated');
+                        
+                        console.log('[FRONTEND] Deleting artist with ID:', artistId);
+                        
+                        const res = await fetch(`/api/admin/artists/${artistId}`, {
+                            method: 'DELETE',
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+                        
+                        const contentType = res.headers.get('content-type');
+                        let data;
+                        if (contentType && contentType.includes('application/json')) {
+                            data = await res.json();
+                        } else {
+                            const text = await res.text();
+                            console.error('[FRONTEND] Non-JSON response:', text);
+                            throw new Error(`Server error: ${text.substring(0, 100)}`);
+                        }
+                        
+                        console.log('[FRONTEND] Delete response:', data);
+                        
+                        if (!res.ok) {
+                            const errorMsg = data.message || data.error || 'Delete failed';
+                            console.error('[FRONTEND] Delete failed:', errorMsg, data);
+                            throw new Error(errorMsg);
+                        }
+                        
+                        alert('Artist deleted successfully!');
+                        // Reload page to reflect changes
+                        window.location.reload();
+                    } catch (err) {
+                        console.error('[FRONTEND] Delete error:', err);
+                        alert('Error: ' + (err.message || 'Delete error. Check console for details.'));
+                    }
+                });
+            });
+
+            // Cancel edit
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    editFormContainer.style.display = 'none';
+                    editForm.reset();
+                    currentEditingId = null;
+                    setStatus('');
+                });
+            }
+
+            // Form submit
+            if (editForm) {
+                editForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (!currentEditingId) return;
+                    
+                    setStatus('Saving...');
+                    
+                    try {
+                        const userInfoStr = localStorage.getItem('userInfo');
+                        if (!userInfoStr) throw new Error('Not authenticated. Please log in again.');
+                        const userInfo = JSON.parse(userInfoStr);
+                        const token = userInfo?.token;
+                        if (!token) throw new Error('Not authenticated');
+                        
+                        const formData = new FormData(editForm);
+                        
+                        const res = await fetch(`/api/admin/artists/${currentEditingId}`, {
+                            method: 'PUT',
+                            headers: { Authorization: `Bearer ${token}` },
+                            body: formData
+                        });
+                        
+                        const contentType = res.headers.get('content-type');
+                        let data;
+                        if (contentType && contentType.includes('application/json')) {
+                            data = await res.json();
+                        } else {
+                            const text = await res.text();
+                            throw new Error(`Server error: ${text.substring(0, 100)}`);
+                        }
+                        if (!res.ok) throw new Error(data.message || 'Update failed');
+                        
+                        setStatus('Artist updated successfully!');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } catch (err) {
+                        setStatus(err.message || 'Error', true);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

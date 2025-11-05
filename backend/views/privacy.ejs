@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" href="/img/favicon.png" type="image/png">
+</head>
+
+<body>
+    <button class="menu-toggle-btn" aria-label="Toggle menu">☰</button>
+    <audio id="audio-player"></audio>
+
+    <div class="music-player-container">
+        <nav id="sidebar-container" class="sidebar"></nav>
+
+        <main class="main-content">
+            <div class="text-content-page">
+                <h1 style="text-align: center;">Privacy Policy</h1>
+                <p style="text-align: center;">Last updated: June 18, 2025</p>
+
+                <p>Your privacy is important to us. This policy clearly explains how MyMusic Player collects and processes data.</p>
+
+                <h2>1. Data We Collect</h2>
+                <p>MyMusic Player is a full-stack application with a database. However, in the current version, we <b>do not</b> require account registration and therefore <b>do not</b> collect any Personally Identifiable Information (PII) such as name, email, or phone number.</p>
+                <p>The only data stored in our database is data about songs, artists, and playlists that administrators input to serve content for the application.</p>
+
+                <h2>2. Data Stored on Your Browser (Client-Side)</h2>
+                <p>All temporary states of the application, such as the song you are listening to, volume level, or current playlist, only exist during the browser session and will be lost when you close the tab. We do not use Local Storage or other long-term storage mechanisms on the browser to track your behavior.</p>
+
+                <h2>3. Third-Party Services</h2>
+                <p>This website may use fonts from Google Fonts or other CDN services. These services may collect anonymous data according to their own policies. We are not responsible for the data collection of these third parties.</p>
+
+                <h2>4. Links to Other Websites</h2>
+                <p>The website may contain links to other sites (e.g., GitHub). We are not responsible for the content or privacy policies of those websites. We encourage you to read their policies when accessing them.</p>
+
+                <h2>5. Policy Changes</h2>
+                <p>We may update this policy in the future to reflect new features (e.g., login functionality). Any changes will be posted on this page.</p>
+            </div>
+            
+            </main>
+        
+        <footer id="player-bar-container"></footer>
+        <div id="now-playing-fullscreen-container"></div>
+        <div id="notification-container"></div>
+    </div>
+
+    <script src="/js/utils.js" defer></script>
+    <script src="/js/player.js" defer></script>
+    <script src="/js/sidebar.js" defer></script>
+    <script src="/js/appendMainFooter.js" defer></script>
+</body>
+</html>

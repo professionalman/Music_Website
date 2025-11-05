@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" href="/img/favicon.png" type="image/png">
+    <style>
+        /* You can keep these styles or move them to styles.css */
+        .playlist-header-details {
+            display: flex;
+            align-items: flex-end;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .playlist-cover-art img {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .playlist-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .playlist-info .playlist-type {
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            color: #b3b3b3;
+        }
+
+        .playlist-info .playlist-main-title {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.1;
+            color: #fff;
+        }
+
+        .playlist-info .playlist-description,
+        .playlist-info .playlist-stats {
+            font-size: 0.9em;
+            color: #b3b3b3;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="menu-toggle-btn" aria-label="Toggle menu">☰</button>
+    <audio id="audio-player"></audio>
+
+    <div class="music-player-container">
+        <nav id="sidebar-container" class="sidebar"></nav>
+
+        <main class="main-content" id="playlist-detail-container">
+            <div class="playlist-header-details">
+                <div class="playlist-cover-art">
+                    <img src="/<%= (playlist.songs && playlist.songs.length > 0) ? playlist.songs[0].artUrl : 'img/song-holder.png' %>"
+                        alt="<%= playlist.title %>">
+                </div>
+                <div class="playlist-info">
+                    <span class="playlist-type">Playlist</span>
+                    <h1 class="playlist-main-title">
+                        <%= playlist.title %>
+                    </h1>
+                    <p class="playlist-description">
+                        <%= playlist.description || '' %>
+                    </p>
+                    <div class="playlist-stats">
+                        <%= playlist.songs.length %> songs
+                    </div>
+                </div>
+            </div>
+
+            <div class="song-list-container">
+                <div class="song-list-header song-list-item">
+                    <span class="song-index">#</span>
+                    <span class="song-art-placeholder"></span>
+                    <div class="song-details">
+                        <div class="song-title">TITLE</div>
+                    </div>
+                    <div class="song-artist-column">ARTIST</div>
+                    <div class="song-plays">PLAYS</div>
+                    <div class="song-duration">DURATION</div>
+                    <div class="song-actions">ACTIONS</div>
+                </div>
+
+                <% playlist.songs.forEach((song, index)=> { %>
+                    <div class="song-list-item" data-id="<%= song._id %>" data-src="<%= song.audioSrc %>"
+                        data-title="<%= song.title %>" data-artist="<%= song.artistName %>"
+                        data-art="<%= song.artUrl %>">
+
+                        <span class="song-index">
+                            <%= index + 1 %>
+                        </span>
+                        <img src="/<%= song.artUrl %>" alt="<%= song.title %>" class="album-art-small">
+                        <div class="song-details">
+                            <div class="song-title">
+                                <%= song.title %>
+                            </div>
+                        </div>
+                        <div class="song-artist-column">
+                            <%= song.artistName %>
+                        </div>
+                        <div class="song-plays">
+                            <%= song.plays || 0 %>
+                        </div>
+                        <div class="song-duration">--:--</div>
+                        <div class="song-actions">
+                            <button class="icon-btn btn-edit-playlist" title="Edit Song" data-song-id="<%= song._id %>" style="display: none;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.0001 1.0001 0 0 0 0-1.41l-2.34-2.34a1.0001 1.0001 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <% }); %>
+            </div>
+        </main>
+
+        <footer id="player-bar-container"></footer>
+        <div id="now-playing-fullscreen-container"></div>
+        <div id="notification-container"></div>
+    </div>
+
+    <script src="/js/utils.js" defer></script>
+    <script src="/js/player.js" defer></script>
+    <script src="/js/sidebar.js" defer></script>
+    <script src="/js/appendMainFooter.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const songItems = document.querySelectorAll('.song-list-item[data-src]');
+
+            // Check if user is admin and show edit buttons
+            try {
+                const userInfo = JSON.parse(localStorage.getItem('userInfo') || 'null');
+                if (userInfo && userInfo.role === 'admin') {
+                    const editButtons = document.querySelectorAll('.btn-edit-playlist');
+                    editButtons.forEach(btn => {
+                        btn.style.display = 'block';
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation(); // Prevent triggering song play
+                            const songId = btn.dataset.songId;
+                            if (songId) {
+                                window.location.href = `/admin_song?id=${encodeURIComponent(songId)}`;
+                            }
+                        });
+                    });
+                }
+            } catch (err) {
+                console.error('Error checking admin status:', err);
+            }
+
+            // Create playlist context from all songs in this playlist
+            const playlistContext = [];
+            songItems.forEach(item => {
+                playlistContext.push({
+                    _id: item.dataset.id, // << IMPORTANT: Add this line
+                    audioSrc: item.dataset.src,
+                    title: item.dataset.title,
+                    artistName: item.dataset.artist,
+                    artUrl: item.dataset.art,
+                    artistData: item.dataset.artist
+                });
+            });
+
+            // Attach listener to each item
+            songItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    // Don't trigger play if clicking on edit button
+                    if (e.target.closest('.btn-edit-playlist')) {
+                        return;
+                    }
+                    const songData = {
+                        _id: item.dataset.id, // << IMPORTANT: Add this line
+                        audioSrc: item.dataset.src,
+                        title: item.dataset.title,
+                        artistName: item.dataset.artist,
+                        artUrl: item.dataset.art
+                    };
+
+                    if (typeof window.playSongFromData === 'function') {
+                        // Pass both clicked song and entire playlist context
+                        window.playSongFromData(songData, playlistContext);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

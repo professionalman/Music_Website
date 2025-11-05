@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" href="/img/favicon.png" type="image/png">
+    <style>
+        /* Specific CSS for Tutorial page */
+        .tutorial-content {
+            padding: 20px 30px;
+        }
+        .tutorial-section {
+            margin-bottom: 40px;
+            background-color: #181818;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .tutorial-section h2 {
+            font-size: 1.8em;
+            color: #1DB954; /* Characteristic green color */
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .tutorial-section h2 .icon-container {
+            margin-right: 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #282828;
+            padding: 8px;
+            border-radius: 50%;
+        }
+        .tutorial-section h2 .icon-container svg {
+            width: 24px;
+            height: 24px;
+            fill: #fff;
+        }
+        .tutorial-section h3 {
+            font-size: 1.3em;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            color: #fff;
+            border-left: 3px solid #1DB954;
+            padding-left: 10px;
+        }
+        .tutorial-section p, .tutorial-section li {
+            color: #b3b3b3;
+            line-height: 1.7;
+        }
+        .tutorial-section ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .tutorial-section li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 10px;
+        }
+        .tutorial-section li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #1DB954;
+            font-weight: bold;
+        }
+        .active-state-demo {
+            color: #fff;
+            background-color: #2a2a2a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .note {
+            background-color: #282828;
+            border-left: 4px solid #535353;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+        }
+        .note p { margin: 0; }
+        .active-state-demo {
+            color: #1DB954;
+            font-weight: bold;
+        }
+        .active-state-demo svg {
+             fill: #1DB954 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="menu-toggle-btn" aria-label="Toggle menu">☰</button>
+    <audio id="audio-player"></audio>
+
+    <div class="music-player-container">
+        <nav id="sidebar-container" class="sidebar"></nav>
+
+        <main class="main-content">
+            <div class="tutorial-content">
+                <h1>Feature User Guide</h1>
+                <p>Explore advanced control functions for the best music listening experience on MyMusic Player.</p>
+
+                <section class="tutorial-section">
+                    <h2>
+                        <span class="icon-container">
+                             <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"></path></svg>
+                        </span>
+                        Shuffle
+                    </h2>
+                    <p>This function allows you to shuffle your entire library and play songs in a random order, bringing freshness every time you listen to music.</p>
+                    
+                    <h3>How it works</h3>
+                    <ul>
+                        <li><strong>On/Off:</strong> Click the <span class="active-state-demo">Shuffle</span> icon on the control bar to turn this mode on or off. When on, the icon will be <span class="active-state-demo">green</span>.</li>
+                        <li><strong>When mode is OFF:</strong> Songs will be played in the order of the list. The <span class="active-state-demo">Next</span> button will move to the song immediately following the current one.</li>
+                        <li><strong>When mode is ON:</strong>
+                            <ul>
+                                <li>When you press <span class="active-state-demo">Next</span> or when a song ends, a completely random song from the library will be selected to play.</li>
+                                <li>If you select any song from the list, that song will be played immediately, and subsequent songs will continue to be played randomly.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="tutorial-section">
+                      <h2>
+                        <span class="icon-container">
+                            <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"></path></svg>
+                        </span>
+                        Repeat
+                    </h2>
+                    <p>The Repeat function has 3 different modes, giving you full control over how songs are played after they end.</p>
+                    
+                    <h3>Modes</h3>
+                    <p>Click the <span class="active-state-demo">Repeat</span> icon to cycle through the 3 modes:</p>
+                    
+                    <ol style="list-style: none; padding-left: 0;">
+                        <li>
+                            <h3>1. Repeat Off (Default)</h3>
+                            <p>This is the initial mode. The icon is gray.</p>
+                             <ul>
+                                <li>When the last song in the list (or playlist) ends and Shuffle mode is off, the music player will stop.</li>
+                                <li>If Shuffle mode is on, another random song will be played.</li>
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <h3>2. Repeat All</h3>
+                             <p>Press once, the icon will turn <span class="active-state-demo">green</span>. </p>
+                             <ul>
+                                <li>When the last song in the list ends, the player will automatically go back and play the first song.</li>
+                                <li>This mode creates an endless loop for your entire playlist.</li>
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <h3>3. Repeat One</h3>
+                            <p>Press a second time, the icon will be <span class="active-state-demo">green</span> and have a small <span class="active-state-demo">number 1</span> inside.</p>
+                            <ul>
+                                <li>When the current song ends, it will automatically be replayed from the beginning.</li>
+                                <li>This mode is very useful when you want to listen to a favorite song over and over again.</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <div class="note">
+                        <p><strong>Tip:</strong> Click the Repeat button a third time to return to "Repeat Off" mode.</p>
+                    </div>
+                </section>
+            </div>
+            
+            </main>
+        
+        <footer id="player-bar-container"></footer>
+        <div id="now-playing-fullscreen-container"></div>
+        <div id="notification-container"></div>
+    </div>
+
+    <script src="/js/utils.js" defer></script>
+    <script src="/js/player.js" defer></script>
+    <script src="/js/sidebar.js" defer></script>
+    <script src="/js/appendMainFooter.js" defer></script>
+    
+    </body>
+</html>

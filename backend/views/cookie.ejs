@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" href="/img/favicon.png" type="image/png">
+</head>
+
+<body>
+    <button class="menu-toggle-btn" aria-label="Toggle menu">☰</button>
+    <audio id="audio-player"></audio>
+
+    <div class="music-player-container">
+        <nav id="sidebar-container" class="sidebar"></nav>
+
+        <main class="main-content">
+            <div class="text-content-page"> 
+                <h1 style="text-align: center;">Cookie Policy</h1>
+                <p style="text-align: center;">Last updated: June 18, 2025</p>
+
+                <p>This policy explains the use of cookies on the MyMusic Player website.</p>
+
+                <h2>What are Cookies?</h2>
+                <p>Cookies are small text files stored on your browser when you visit a website. They are typically used to remember preferences, maintain login status, or analyze traffic.</p>
+
+                <h2>Does MyMusic Player use Cookies?</h2>
+                <p><strong>No.</strong></p>
+                <p>The MyMusic Player website currently <b>does not actively set or use any cookies</b> to track users, store preferences, or for advertising purposes. As this is a full-stack application with a database but currently lacks login functionality, we do not yet need cookies to maintain user sessions.</p>
+
+                <h2>Third-party Cookies</h2>
+                <p>In the future, if we integrate third-party services (e.g., Google Analytics for traffic analysis), those services may set their own cookies. Any changes will be updated in this policy.</p>
+
+                <h2>How to manage Cookies?</h2>
+                <p>Although we do not use cookies, you always have full control over cookies on your browser. You can view, delete, or block cookies from any website through your browser settings (usually under "Settings" > "Privacy and Security").</p>
+            </div>
+            
+            </main>
+        
+        <footer id="player-bar-container"></footer>
+        <div id="now-playing-fullscreen-container"></div>
+        <div id="notification-container"></div>
+    </div>
+
+    <script src="/js/utils.js" defer></script>
+    <script src="/js/player.js" defer></script>
+    <script src="/js/sidebar.js" defer></script>
+    <script src="/js/appendMainFooter.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Manage Songs</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <button class="menu-toggle-btn" aria-label="Toggle menu">☰</button>
+    <audio id="audio-player"></audio>
+    <div class="music-player-container">
+        <nav id="sidebar-container" class="sidebar"></nav>
+        <main class="main-content">
+            <div class="admin-header">
+                <h1>Manage Songs</h1>
+                <p>View, edit or delete existing songs</p>
+                <div style="margin-top: 15px;">
+                    <a href="/admin" class="primary-btn"
+                        style="display: inline-block; padding: 10px 20px; text-decoration: none;">+ Upload New Song</a>
+                </div>
+            </div>
+
+            <div class="admin-manage-container">
+                <div id="songs-debug-banner" class="songs-debug-banner"
+                    style="margin-bottom:12px;color:#b3b3b3;font-size:0.95em"></div>
+
+                <!-- Search Bar -->
+                <div style="margin-bottom: 20px;">
+                    <input type="text" id="song-search-input" placeholder="Search songs by title or artist name..."
+                        style="width: 100%; max-width: 500px; padding: 12px 16px; font-size: 1em; background-color: #2a2a2a; border: 1px solid #404040; border-radius: 8px; color: #ffffff; outline: none; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='#1DB954'" onblur="this.style.borderColor='#404040'" />
+                </div>
+
+                <div id="songs-list" class="songs-list"></div>
+            </div>
+        </main>
+        <footer id="player-bar-container"></footer>
+        <div id="now-playing-fullscreen-container"></div>
+        <div id="notification-container"></div>
+    </div>
+
+    <script src="/js/utils.js" defer></script>
+    <script src="/js/sidebar.js" defer></script>
+    <script src="/js/player.js" defer></script>
+    <script defer>
+        // Visible diagnostic: show songs count and sample so user doesn't need DevTools
+        document.addEventListener('DOMContentLoaded', async () => {
+            const banner = document.getElementById('songs-debug-banner');
+            if (!banner) return;
+            banner.textContent = 'Loading songs...';
+            try {
+                const res = await fetch('/api/songs');
+                if (!res.ok) {
+                    banner.textContent = `Failed to load songs: ${res.status} ${res.statusText}`;
+                    return;
+                }
+                const payload = await res.json();
+                const songs = Array.isArray(payload) ? payload : (payload.songs || payload);
+                banner.textContent = `Songs received: ${Array.isArray(songs) ? songs.length : 'N/A'} (first 3 shown)`;
+                if (Array.isArray(songs) && songs.length > 0) {
+                    const list = document.createElement('div');
+                    list.style.marginTop = '6px';
+                    list.style.fontSize = '0.85em';
+                    list.style.color = '#9aa0a6';
+                    list.textContent = songs.slice(0, 3).map(s => `${s.title} — ${s.artistName}`).join(' | ');
+                    banner.appendChild(list);
+                }
+            } catch (err) {
+                banner.textContent = `Error fetching songs: ${err.message || err}`;
+            }
+        });
+    </script>
+    <script src="/js/admin_songs.js" defer></script>
+</body>
+
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" href="/img/favicon.png" type="image/png">
+</head>
+
+<body>
+    <button class="menu-toggle-btn" aria-label="Toggle menu">☰</button>
+    <audio id="audio-player"></audio>
+
+    <div class="music-player-container">
+        <nav id="sidebar-container" class="sidebar"></nav>
+
+        <main class="main-content">
+            <div class="text-content-page">
+                <h1 style="text-align: center;">Legal</h1>
+                <p style="text-align: center;">Last updated: June 18, 2025</p>
+
+                <p>Welcome to MyMusic Player. By accessing and using this website, you agree to comply with the terms and policies listed below. Please read the following documents carefully to understand your rights and responsibilities when using our services.</p>
+
+                <h2 style="margin-top: 30px;">Key Legal Documents</h2>
+                <ul>
+                    <li><a href="/privacy">Privacy Policy</a>: Explains how we handle information (if any) and our commitment to protecting your privacy.</li>
+                    <li><a href="/cookie">Cookie Policy</a>: Describes the cookies that may be used on the website and how you can manage them.</li>
+                    <li><a href="#terms-of-use">Terms of Use</a>: Regulations regarding the use of content and functions on the website.</li>
+                    <li><a href="#intellectual-property">Intellectual Property Rights</a>: Statements regarding copyright of music content and images.</li>
+                </ul>
+
+                <hr style="margin: 40px 0;">
+
+                <section id="terms-of-use">
+                    <h2>Terms of Use</h2>
+                    <p>MyMusic Player is a personal, non-commercial project created for learning purposes and to demonstrate skills. The service is provided "as-is" without any warranty.</p>
+                    <p>You are not allowed to:</p>
+                    <ul>
+                        <li>Use the website for any commercial purpose.</li>
+                        <li>Reproduce, copy, or redistribute the source code of the project without complying with the terms of the provided MIT license.</li>
+                        <li>Attempt to extract, download, or redistribute audio files embedded on the website.</li>
+                    </ul>
+                </section>
+
+                <section id="intellectual-property" style="margin-top: 30px;">
+                    <h2>Intellectual Property Rights</h2>
+                    <p>We respect the intellectual property rights of artists and producers.</p>
+                    <ul>
+                        <li><strong>Project Source Code:</strong> The source code of the MyMusic Player website is released under the MIT license. You are free to use, modify, and redistribute it according to the terms of this license.</li>
+                        <li><strong>Music Content and Images:</strong> All music content, album covers, and artist images embedded or displayed on this website belong to the copyright of the respective artists, record labels, and related parties. MyMusic Player does not own and does not claim ownership of any of this content. Their use is solely for illustrative purposes and to demonstrate the functionality of a music player.</li>
+                    </ul>
+                </section>
+            </div>
+            
+            </main>
+        
+        <footer id="player-bar-container"></footer>
+        <div id="now-playing-fullscreen-container"></div>
+        <div id="notification-container"></div>
+    </div>
+
+    <script src="/js/utils.js" defer></script>
+    <script src="/js/player.js" defer></script>
+    <script src="/js/sidebar.js" defer></script>
+    <script src="/js/appendMainFooter.js" defer></script>
+</body>
+</html>

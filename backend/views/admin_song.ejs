@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <%= title %>
+  </title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" href="/img/favicon.png" type="image/png">
+</head>
+
+<body>
+  <button class="menu-toggle-btn" aria-label="Toggle menu">☰</button>
+  <audio id="audio-player"></audio>
+
+  <div class="music-player-container">
+    <nav id="sidebar-container" class="sidebar"></nav>
+
+    <main class="main-content">
+      <div class="admin-header">
+        <h1>Edit Song</h1>
+        <p>Update song details and media files</p>
+      </div>
+
+      <div class="admin-upload-container">
+        <form id="edit-song-form" class="upload-form">
+          <div class="form-section">
+            <h2>Song Details</h2>
+            <div class="form-row">
+              <label for="title">Song Title</label>
+              <input type="text" id="title" name="title" placeholder="Enter song title" required>
+            </div>
+            <div class="form-row">
+              <label for="artistSelect">Select Artist</label>
+              <select id="artistSelect" name="artistSelect" required
+                style="width: 100%; padding: 12px; font-size: 1em; background-color: #2a2a2a; border: 1px solid #404040; border-radius: 8px; color: #ffffff; cursor: pointer;">
+                <option value="">-- Choose an artist --</option>
+              </select>
+              <p style="margin-top: 8px; font-size: 0.9em; color: #b3b3b3;">
+                Don't see the artist? <a href="/artists" style="color: #1DB954; text-decoration: underline;">Create one
+                  here</a>
+              </p>
+            </div>
+            <input type="hidden" id="artistId" name="artistId">
+            <input type="hidden" id="artistName" name="artistName">
+          </div>
+
+          <div class="form-section">
+            <h2>Media Files (Optional - only upload if replacing)</h2>
+            <div class="form-row">
+              <label for="audio">Audio File</label>
+              <div class="file-input-wrapper">
+                <input type="file" id="audio" name="audio" accept="audio/*">
+                <span class="file-input-text">Choose audio file...</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="cover">Cover Image</label>
+              <div class="file-input-wrapper">
+                <input type="file" id="cover" name="cover" accept="image/*">
+                <span class="file-input-text">Choose cover image...</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="primary-btn">Save Changes</button>
+            <div id="edit-status" class="upload-status"></div>
+          </div>
+        </form>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <a href="/admin_songs" class="secondary-btn"
+          style="display: inline-block; padding: 10px 20px; text-decoration: none;">← Back to Manage Songs</a>
+      </div>
+    </main>
+
+    <footer id="player-bar-container"></footer>
+    <div id="now-playing-fullscreen-container"></div>
+    <div id="notification-container"></div>
+  </div>
+
+  <script src="/js/utils.js" defer></script>
+  <script src="/js/sidebar.js" defer></script>
+  <script src="/js/player.js" defer></script>
+  <script src="/js/admin_song.js" defer></script>
+</body>
+
+</html>
