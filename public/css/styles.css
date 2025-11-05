@@ -692,6 +692,27 @@ button:hover {
     color: #b3b3b3;
     width: 20px;
     text-align: right;
+    position: relative;
+}
+
+.song-list-item .song-index .play-pause-icon {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.song-list-item .song-index .play-pause-icon:hover {
+    color: #1DB954;
+}
+
+.song-list-item:hover .song-index {
+    color: #fff;
 }
 
 /* Nếu bạn muốn ảnh nhỏ trong danh sách bài hát (ví dụ: trang nghệ sĩ) cũng vuông: */

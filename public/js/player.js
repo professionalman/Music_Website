@@ -10,7 +10,173 @@ let repeatMode = 'none'; // 'none', 'all', 'one'
 let lastVolume = 0.7;
 let userLikedSongIds = new Set(); // Use Set for faster lookup
 
+// Expose these to window for access from other scripts
+window.currentPlaylist = currentQueue;
+window.currentPlayingIndex = currentIndex;
+
 // --- UTILITY FUNCTIONS ---
+
+// Get unique storage key for current user
+function getPlayerStateKey() {
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+        try {
+            const user = JSON.parse(userInfo);
+            return `playerState_${user._id}`;
+        } catch (e) {
+            console.error('Error parsing userInfo:', e);
+        }
+    }
+    return 'playerState_guest'; // Fallback for non-logged in users
+}
+
+// Save player state to localStorage (per user)
+function savePlayerState() {
+    const audioPlayer = document.getElementById('audio-player');
+    if (!audioPlayer) return;
+
+    const playerState = {
+        currentQueue: currentQueue,
+        currentIndex: currentIndex,
+        currentTime: audioPlayer.currentTime,
+        isPlaying: !audioPlayer.paused,
+        isShuffle: isShuffle,
+        repeatMode: repeatMode,
+        volume: audioPlayer.volume
+    };
+    localStorage.setItem(getPlayerStateKey(), JSON.stringify(playerState));
+}
+
+// Clear player state (called on logout)
+function clearPlayerState() {
+    const storageKey = getPlayerStateKey();
+    localStorage.removeItem(storageKey);
+    
+    // Also stop and clear the audio player
+    const audioPlayer = document.getElementById('audio-player');
+    if (audioPlayer) {
+        audioPlayer.pause();
+        audioPlayer.src = '';
+        audioPlayer.currentTime = 0;
+    }
+    
+    // Reset queue
+    currentQueue = [];
+    currentIndex = -1;
+    window.currentPlaylist = [];
+    window.currentPlayingIndex = -1;
+}
+
+// Expose clearPlayerState to window for logout handler
+window.clearPlayerState = clearPlayerState;
+
+// Restore player state from localStorage (per user)
+function restorePlayerState() {
+    const savedState = localStorage.getItem(getPlayerStateKey());
+    if (!savedState) return false;
+
+    try {
+        const playerState = JSON.parse(savedState);
+        if (!playerState.currentQueue || playerState.currentQueue.length === 0) return false;
+
+        currentQueue = playerState.currentQueue;
+        currentIndex = playerState.currentIndex;
+        isShuffle = playerState.isShuffle || false;
+        repeatMode = playerState.repeatMode || 'none';
+
+        // Update window references
+        window.currentPlaylist = currentQueue;
+        window.currentPlayingIndex = currentIndex;
+
+        const audioPlayer = document.getElementById('audio-player');
+        if (audioPlayer && currentIndex >= 0 && currentIndex < currentQueue.length) {
+            const songData = currentQueue[currentIndex];
+            const savedTime = playerState.currentTime || 0;
+            const wasPlaying = playerState.isPlaying || false;
+            
+            // Set up audio player with aggressive preload for seamless playback
+            audioPlayer.preload = 'auto';
+            audioPlayer.volume = playerState.volume || 0.7;
+            
+            // Check if same song is already loaded (avoid reloading)
+            if (audioPlayer.src !== songData.audioSrc) {
+                audioPlayer.src = songData.audioSrc;
+            }
+
+            // Use canplaythrough for smoother playback (ensures enough data buffered)
+            // Combined with aggressive seeking approach
+            const setTimeAndPlay = () => {
+                // Set time immediately if metadata is loaded
+                if (audioPlayer.readyState >= 1 && savedTime > 0) {
+                    audioPlayer.currentTime = savedTime;
+                }
+                
+                // Auto-play immediately if it was playing before
+                if (wasPlaying) {
+                    audioPlayer.play().then(() => {
+                        // If time wasn't set before, set it after play starts
+                        if (savedTime > 0 && Math.abs(audioPlayer.currentTime - savedTime) > 1) {
+                            audioPlayer.currentTime = savedTime;
+                        }
+                    }).catch(err => {
+                        console.log("Auto-play blocked by browser:", err);
+                    });
+                }
+            };
+
+            // Try to restore immediately if data is already available
+            if (audioPlayer.readyState >= 2) {
+                setTimeAndPlay();
+            } else {
+                // Wait for canplay event (fires when enough data is available)
+                audioPlayer.addEventListener('canplay', function resumePlayback() {
+                    audioPlayer.removeEventListener('canplay', resumePlayback);
+                    setTimeAndPlay();
+                }, { once: true });
+            }
+
+            // Fallback: Start loading immediately
+            audioPlayer.load();
+
+            // Update UI immediately for instant feedback
+            document.getElementById('now-playing-title').textContent = songData.title;
+            document.getElementById('now-playing-artist').textContent = songData.artistData || songData.artistName;
+            document.getElementById('now-playing-art').src = songData.artUrl;
+            document.getElementById('np-fullscreen-title').textContent = songData.title;
+            document.getElementById('np-fullscreen-artist').textContent = songData.artistData || songData.artistName;
+            document.getElementById('np-fullscreen-art').src = songData.artUrl;
+            document.title = `${songData.title} - ${songData.artistData || songData.artistName}`;
+            updateFavicon(songData.artUrl || "/img/favicon.png");
+
+            // Update like button state
+            const likeBtn = document.getElementById('like-btn');
+            if (likeBtn) {
+                const isLiked = userLikedSongIds.has(songData._id);
+                likeBtn.classList.toggle('active', isLiked);
+                const svgIcon = likeBtn.querySelector('svg');
+                if (svgIcon) {
+                    svgIcon.setAttribute('fill', isLiked ? '#1DB954' : 'currentColor');
+                }
+            }
+
+            // Update shuffle and repeat button states
+            const shuffleBtn = document.getElementById('shuffle-btn');
+            const repeatBtn = document.getElementById('repeat-btn');
+            if (shuffleBtn) shuffleBtn.classList.toggle('active', isShuffle);
+            if (repeatBtn) {
+                repeatBtn.classList.remove('active', 'repeat-one');
+                if (repeatMode === 'all') repeatBtn.classList.add('active');
+                if (repeatMode === 'one') repeatBtn.classList.add('repeat-one');
+            }
+
+            return true;
+        }
+    } catch (error) {
+        console.error("Error restoring player state:", error);
+        localStorage.removeItem('playerState');
+    }
+    return false;
+}
 
 // Display short notification
 window.showNotification = function(message, type = 'success') { // Add type parameter and window.
@@ -65,6 +231,10 @@ function playSongByIndex(index) {
     currentIndex = index;
     const songData = currentQueue[currentIndex];
 
+    // Update window references for other scripts
+    window.currentPlaylist = currentQueue;
+    window.currentPlayingIndex = currentIndex;
+
     // --- START CHANGE ---
     const likeBtn = document.getElementById('like-btn');
     if (likeBtn) {
@@ -101,14 +271,45 @@ function playSongByIndex(index) {
     document.getElementById('np-fullscreen-artist').textContent = songData.artistData || songData.artistName;
     document.getElementById('np-fullscreen-art').src = songData.artUrl;
     
-    // Assign source and play music
+    // Preload current song aggressively
+    audioPlayer.preload = 'auto';
     audioPlayer.src = songData.audioSrc;
+    
     const playPromise = audioPlayer.play();
     if (playPromise !== undefined) {
         playPromise.catch(error => {
             console.error("Error playing music:", error);
             showNotification(`Error: Cannot play ${songData.title}`, 'error');
         });
+    }
+
+    // Preload next song in background for gapless playback
+    if (currentIndex + 1 < currentQueue.length) {
+        preloadNextSong(currentQueue[currentIndex + 1]);
+    }
+
+    // Save state after starting playback
+    savePlayerState();
+
+    // Dispatch custom event for other scripts
+    document.dispatchEvent(new CustomEvent('songChanged', { detail: { songData, index } }));
+}
+
+// Preload next song for smoother transitions
+let preloadAudio = null;
+function preloadNextSong(songData) {
+    if (!songData || !songData.audioSrc) return;
+    
+    // Create or reuse preload audio element
+    if (!preloadAudio) {
+        preloadAudio = new Audio();
+        preloadAudio.preload = 'auto';
+    }
+    
+    // Only preload if different from current preload
+    if (preloadAudio.src !== songData.audioSrc) {
+        preloadAudio.src = songData.audioSrc;
+        preloadAudio.load(); // Start loading in background
     }
 }
 
@@ -409,13 +610,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    audioPlayer.addEventListener('play', () => mainPlayPauseBtn.innerHTML = pauseIconSVG);
-    audioPlayer.addEventListener('pause', () => mainPlayPauseBtn.innerHTML = playIconSVG);
+    audioPlayer.addEventListener('play', () => {
+        mainPlayPauseBtn.innerHTML = pauseIconSVG;
+        savePlayerState();
+    });
+    audioPlayer.addEventListener('pause', () => {
+        mainPlayPauseBtn.innerHTML = playIconSVG;
+        savePlayerState();
+    });
 
+    let lastSaveTime = 0;
     audioPlayer.addEventListener('timeupdate', () => {
         if (isNaN(audioPlayer.duration)) return;
         progressBar.value = audioPlayer.currentTime;
         currentTimeEl.textContent = window.formatTime(audioPlayer.currentTime);
+        
+        // Save state every 1 second during playback for near-instant recovery
+        const currentTime = audioPlayer.currentTime;
+        if (currentTime - lastSaveTime >= 1) {
+            savePlayerState();
+            lastSaveTime = currentTime;
+        }
     });
 
     audioPlayer.addEventListener('loadedmetadata', () => {
@@ -448,6 +663,15 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Finished attaching listeners to cards.");
     } else {
         console.warn("No song cards found on page.");
+    }
+
+    // --- 5. RESTORE PLAYER STATE FROM PREVIOUS SESSION ---
+    console.log("Attempting to restore player state...");
+    const restored = restorePlayerState();
+    if (restored) {
+        console.log("Player state restored successfully from localStorage.");
+    } else {
+        console.log("No previous player state found or restoration failed.");
     }
 
     console.log("Player initialization complete.");

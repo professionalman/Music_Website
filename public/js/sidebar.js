@@ -79,7 +79,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Logout handler
     const logoutHandler = () => {
+        // Clear user info
         localStorage.removeItem('userInfo');
+        
+        // Clear player state for this user (if player.js is loaded)
+        if (typeof window.clearPlayerState === 'function') {
+            window.clearPlayerState();
+        }
+        
         window.location.href = '/login';
     };
 

@@ -27,13 +27,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Use createSongCard function from utils.js
                 if (typeof window.createSongCard !== 'function') return;
                 const card = window.createSongCard(song);
-                card.addEventListener('click', () => {
+                
+                // Add click event with play/pause toggle
+                card.addEventListener('click', (event) => {
                     if (typeof window.playSongFromData !== 'function') return;
-                    // When clicking, context is the entire library
-                    window.playSongFromData(song, songs);
+                    
+                    const audioPlayer = document.getElementById('audio-player');
+                    const isThisSongPlaying = window.currentPlayingIndex !== undefined && 
+                                             window.currentPlaylist[window.currentPlayingIndex]?._id === song._id;
+                    
+                    if (isThisSongPlaying && !audioPlayer.paused) {
+                        // If this song is currently playing, pause it
+                        audioPlayer.pause();
+                    } else if (isThisSongPlaying && audioPlayer.paused) {
+                        // If this song is paused, resume it
+                        audioPlayer.play();
+                    } else {
+                        // Play new song
+                        window.playSongFromData(song, songs);
+                    }
                 });
+                
                 songsDisplayContainer.appendChild(card);
             });
+            
+            // Update play/pause buttons after rendering
+            if (typeof window.updateAllCardPlayButtons === 'function') {
+                window.updateAllCardPlayButtons();
+            }
         } else if (currentViewMode === 'list') {
             songsDisplayContainer.className = 'song-list-container';
 
@@ -176,12 +197,20 @@ document.addEventListener('DOMContentLoaded', () => {
             songs.forEach((song, index) => {
                 const songItem = document.createElement('div');
                 songItem.className = 'song-list-item';
+                songItem.dataset.songId = song._id; // Add song ID for tracking
 
                 // Add data-artist to song-details for responsive use
                 const artistName = song.artistName || 'Unknown Artist';
 
                 songItem.innerHTML = `
-                <span class="song-index">${index + 1}</span>
+                <span class="song-index">
+                    <span class="index-number">${index + 1}</span>
+                    <button class="play-pause-icon" style="display: none;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                            <path d="M8 5v14l11-7z"></path>
+                        </svg>
+                    </button>
+                </span>
                 <img src="/${song.artUrl || 'img/song-holder.png'}" alt="${song.title}" class="album-art-small">
                 <div class="song-details" data-artist="${artistName}">
                     <div class="song-title">${song.title}</div>
@@ -190,10 +219,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="song-plays">${(song.plays || 0).toLocaleString('en-US')}</div>
             `;
 
+                // Add hover effect to show play button
+                songItem.addEventListener('mouseenter', () => {
+                    const audioPlayer = document.getElementById('audio-player');
+                    const isThisSongPlaying = window.currentPlayingIndex !== undefined && 
+                                             window.currentPlaylist[window.currentPlayingIndex]?._id === song._id;
+                    
+                    if (!isThisSongPlaying || audioPlayer.paused) {
+                        songItem.querySelector('.index-number').style.display = 'none';
+                        songItem.querySelector('.play-pause-icon').style.display = 'inline-block';
+                    }
+                });
+
+                songItem.addEventListener('mouseleave', () => {
+                    const audioPlayer = document.getElementById('audio-player');
+                    const isThisSongPlaying = window.currentPlayingIndex !== undefined && 
+                                             window.currentPlaylist[window.currentPlayingIndex]?._id === song._id;
+                    
+                    if (!isThisSongPlaying || audioPlayer.paused) {
+                        songItem.querySelector('.index-number').style.display = 'inline';
+                        songItem.querySelector('.play-pause-icon').style.display = 'none';
+                    }
+                });
+
                 songItem.addEventListener('click', (event) => {
                     if (typeof window.playSongFromData !== 'function') return;
-                    window.playSongFromData(song, songs);
+                    
+                    const audioPlayer = document.getElementById('audio-player');
+                    const isThisSongPlaying = window.currentPlayingIndex !== undefined && 
+                                             window.currentPlaylist[window.currentPlayingIndex]?._id === song._id;
+                    
+                    if (isThisSongPlaying && !audioPlayer.paused) {
+                        // If this song is currently playing, pause it
+                        audioPlayer.pause();
+                    } else if (isThisSongPlaying && audioPlayer.paused) {
+                        // If this song is paused, resume it
+                        audioPlayer.play();
+                    } else {
+                        // Play new song
+                        window.playSongFromData(song, songs);
+                    }
                 });
+                
                 songsDisplayContainer.appendChild(songItem);
             });
             // --- END UPDATE ---
@@ -203,6 +270,77 @@ document.addEventListener('DOMContentLoaded', () => {
     // Override the initial render function with the updated one
     renderLibraryContent = renderLibraryContentUpdated;
 
+    // --- Function to update play/pause icons based on player state ---
+    function updatePlayPauseIcons() {
+        const audioPlayer = document.getElementById('audio-player');
+        const allSongItems = document.querySelectorAll('.song-list-item');
+        
+        allSongItems.forEach((item) => {
+            const songId = item.dataset.songId;
+            const indexNumber = item.querySelector('.index-number');
+            const playPauseIcon = item.querySelector('.play-pause-icon');
+            
+            if (!indexNumber || !playPauseIcon) return;
+            
+            const isThisSongPlaying = window.currentPlayingIndex !== undefined && 
+                                     window.currentPlaylist[window.currentPlayingIndex]?._id === songId;
+            
+            if (isThisSongPlaying && !audioPlayer.paused) {
+                // This song is currently playing - show pause icon
+                indexNumber.style.display = 'none';
+                playPauseIcon.style.display = 'inline-block';
+                playPauseIcon.innerHTML = `
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                        <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"></path>
+                    </svg>
+                `;
+            } else if (isThisSongPlaying && audioPlayer.paused) {
+                // This song is paused - show play icon
+                indexNumber.style.display = 'none';
+                playPauseIcon.style.display = 'inline-block';
+                playPauseIcon.innerHTML = `
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                        <path d="M8 5v14l11-7z"></path>
+                    </svg>
+                `;
+            } else {
+                // Other songs - show index number
+                indexNumber.style.display = 'inline';
+                playPauseIcon.style.display = 'none';
+            }
+        });
+    }
+
+    // Listen to audio player events to update icons
+    const audioPlayer = document.getElementById('audio-player');
+    if (audioPlayer) {
+        audioPlayer.addEventListener('play', () => {
+            updatePlayPauseIcons();
+            if (typeof window.updateAllCardPlayButtons === 'function') {
+                window.updateAllCardPlayButtons();
+            }
+        });
+        audioPlayer.addEventListener('pause', () => {
+            updatePlayPauseIcons();
+            if (typeof window.updateAllCardPlayButtons === 'function') {
+                window.updateAllCardPlayButtons();
+            }
+        });
+        audioPlayer.addEventListener('ended', () => {
+            updatePlayPauseIcons();
+            if (typeof window.updateAllCardPlayButtons === 'function') {
+                window.updateAllCardPlayButtons();
+            }
+        });
+    }
+
+    // Also update when a new song is loaded
+    document.addEventListener('songChanged', () => {
+        updatePlayPauseIcons();
+        if (typeof window.updateAllCardPlayButtons === 'function') {
+            window.updateAllCardPlayButtons();
+        }
+    });
 
     // --- ADD THIS FUNCTION AGAIN (redundant if already defined above, but keeping structure) ---
     // --- Function to initialize header and controls ---

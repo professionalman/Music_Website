@@ -290,7 +290,14 @@ function createSongCard(songData) {
         <img src="/${songData.artUrl || 'img/song-holder.png'}" alt="${songData.title}" class="album-art" loading="lazy">
         <h3 class="song-title">${songData.title || 'Untitled'}</h3>
         <p class="song-artist">${artistText}</p>
-        <button class="play-button-overlay">▶</button>
+        <button class="play-button-overlay">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" class="play-icon">
+                <path d="M8 5v14l11-7z"></path>
+            </svg>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" class="pause-icon" style="display: none;">
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"></path>
+            </svg>
+        </button>
     `;
 
     // **IMPORTANT:** Completely remove the if (typeof window.addCardClickListener) block
@@ -444,11 +451,42 @@ function createSongListItem(songData, index, artistNameToDisplay) {
     return songItem;
 }
 
+// --- Function to update all play/pause buttons on cards ---
+function updateAllCardPlayButtons() {
+    const audioPlayer = document.getElementById('audio-player');
+    if (!audioPlayer) return;
+
+    const allCards = document.querySelectorAll('.card');
+    
+    allCards.forEach((card) => {
+        const songId = card.dataset.id;
+        const playButton = card.querySelector('.play-button-overlay');
+        const playIcon = card.querySelector('.play-icon');
+        const pauseIcon = card.querySelector('.pause-icon');
+        
+        if (!playButton || !playIcon || !pauseIcon) return;
+        
+        const isThisSongPlaying = window.currentPlayingIndex !== undefined && 
+                                 window.currentPlaylist[window.currentPlayingIndex]?._id === songId;
+        
+        if (isThisSongPlaying && !audioPlayer.paused) {
+            // This song is currently playing - show pause icon
+            playIcon.style.display = 'none';
+            pauseIcon.style.display = 'block';
+        } else {
+            // Other songs or paused - show play icon
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+        }
+    });
+}
+
 // --- EXPOSE FUNCTIONS TO GLOBAL SCOPE ---
 // Ensure you have "exposed" these functions so other files can use them
 window.createSongCard = createSongCard;
 window.formatTime = formatTime;
 window.renderPlaylistLinks = renderPlaylistLinks;
-window.createSongListItem = createSongListItem; // << ADD THIS LINE
+window.createSongListItem = createSongListItem;
+window.updateAllCardPlayButtons = updateAllCardPlayButtons;
 
 console.log("utils.js loaded with all utility functions.");
