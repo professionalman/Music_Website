@@ -34,8 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="footer-column">
                 <h4>Useful Links</h4>
                 <ul>
-                    <li><a href="https://github.com/TranHuuDat2004/mymusic" target="_blank" rel="noopener noreferrer">Source Code (GitHub)</a></li>
-                    <li><a href="https://github.com/TranHuuDat2004/mymusic/issues">Report Issue</a></li>
+                    <li><a href="https://github.com/professionalman/Music_Website" target="_blank" rel="noopener noreferrer">Source Code (GitHub)</a></li>
+                    <li><a href="https://github.com/professionalman/Music_Website/issues">Report Issue</a></li>
                 </ul>
             </div>
             <div class="social-links-column">

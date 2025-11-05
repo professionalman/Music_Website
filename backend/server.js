@@ -53,9 +53,10 @@ app.get('/', async (req, res) => {
         const sections = await Playlist.find().populate('songs');
 
         // Render index.ejs and pass data
+        // Note: welcomeMessage is now handled by client-side JavaScript (main.js)
+        // which reads the username from localStorage after login
         res.render('index', {
             title: 'MyMusic Player - Home',
-            welcomeMessage: 'Welcome back, Trần Hữu Đạt',
             sections: sections // Pass all sections to the view
         });
 
