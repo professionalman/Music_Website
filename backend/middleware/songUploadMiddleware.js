@@ -38,7 +38,7 @@ function checkFileType(file, cb) {
 
 const uploadSongAssets = multer({
     storage,
-    limits: { fileSize: 50 * 1024 * 1024 },
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit for audio files
     fileFilter: function (req, file, cb) {
         checkFileType(file, cb);
     }

@@ -273,7 +273,79 @@ function playSongByIndex(index) {
     
     // Preload current song aggressively
     audioPlayer.preload = 'auto';
-    audioPlayer.src = songData.audioSrc;
+    
+    // Construct proper audio path
+    let audioSrc = songData.audioSrc;
+    if (!audioSrc.startsWith('/') && !audioSrc.startsWith('http')) {
+        audioSrc = '/' + audioSrc;
+    }
+    
+    console.log('[PLAYER] Setting audio source:', audioSrc);
+    console.log('[PLAYER] Song data:', songData);
+    
+    // Clear any previous source elements
+    audioPlayer.innerHTML = '';
+    
+    // Get file extension to determine MIME type
+    const extension = audioSrc.split('.').pop().toLowerCase();
+    const mimeTypes = {
+        'mp3': 'audio/mpeg',
+        'm4a': 'audio/mp4',
+        'mp4': 'audio/mp4',
+        'aac': 'audio/aac',
+        'flac': 'audio/flac',
+        'ogg': 'audio/ogg',
+        'oga': 'audio/ogg',
+        'wav': 'audio/wav',
+        'webm': 'audio/webm',
+        'opus': 'audio/opus'
+    };
+    
+    // Create source element with explicit MIME type for better compatibility
+    const sourceElement = document.createElement('source');
+    sourceElement.src = audioSrc;
+    sourceElement.type = mimeTypes[extension] || 'audio/mpeg';
+    audioPlayer.appendChild(sourceElement);
+    
+    // Also set the src directly as fallback
+    audioPlayer.src = audioSrc;
+    audioPlayer.load(); // Force reload with new source
+    
+    // Check if browser can play this format
+    const canPlay = audioPlayer.canPlayType(mimeTypes[extension] || 'audio/mpeg');
+    console.log(`[PLAYER] Can play ${extension} (${mimeTypes[extension]}):`, canPlay);
+    
+    if (canPlay === '') {
+        console.warn(`[PLAYER] Browser might not support ${extension} format!`);
+        showNotification(`Warning: Your browser might not support ${extension.toUpperCase()} format`, 'error');
+    }
+    
+    // Add error handler for audio loading
+    audioPlayer.addEventListener('error', function handleAudioError(e) {
+        console.error('Audio error:', e);
+        console.error('Audio error details:', audioPlayer.error);
+        let errorMessage = 'Cannot play this audio file';
+        
+        if (audioPlayer.error) {
+            switch (audioPlayer.error.code) {
+                case MediaError.MEDIA_ERR_ABORTED:
+                    errorMessage = 'Audio loading aborted';
+                    break;
+                case MediaError.MEDIA_ERR_NETWORK:
+                    errorMessage = 'Network error while loading audio';
+                    break;
+                case MediaError.MEDIA_ERR_DECODE:
+                    errorMessage = 'Audio format not supported or file corrupted';
+                    break;
+                case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                    errorMessage = 'Audio format not supported by browser';
+                    break;
+            }
+        }
+        
+        showNotification(`Error: ${errorMessage}`, 'error');
+        audioPlayer.removeEventListener('error', handleAudioError);
+    }, { once: true });
     
     const playPromise = audioPlayer.play();
     if (playPromise !== undefined) {
@@ -460,10 +532,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const repeatBtn = document.getElementById('repeat-btn');
     const songInfoDiv = playerContainer.querySelector('.song-info');
 
+    // Fullscreen player elements
+    const npCloseBtn = document.getElementById('np-close-btn');
+    const nowPlayingArt = document.getElementById('now-playing-art');
+    const npFullscreenPlayPauseBtn = document.getElementById('np-fullscreen-play-pause-btn');
+    const npFullscreenProgressBar = document.getElementById('np-fullscreen-progress-bar');
+    const npFullscreenCurrentTime = document.getElementById('np-fullscreen-current-time');
+    const npFullscreenTotalTime = document.getElementById('np-fullscreen-total-time');
+    const npFullscreenPrevBtn = document.getElementById('np-fullscreen-prev-btn');
+    const npFullscreenNextBtn = document.getElementById('np-fullscreen-next-btn');
+
     const playIconSVG = '<svg viewBox="0 0 24 24" width="24" height="24" class="icon-play"><path d="M8 5v14l11-7z"></path></svg>';
     const pauseIconSVG = '<svg viewBox="0 0 24 24" width="24" height="24" class="icon-pause"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>';
+    const playIconFullscreenSVG = '<svg viewBox="0 0 24 24" width="60" height="60" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>';
+    const pauseIconFullscreenSVG = '<svg viewBox="0 0 24 24" width="60" height="60" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>';
     const repeatIconSVG_HTML = '<svg viewBox="0 0 24 24" width="20" height="20" class="icon-repeat"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"></path></svg>';
     const repeatOneIconSVG_HTML = '<svg viewBox="0 0 24 24" width="20" height="20" class="icon-repeat"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4zM13 15V9h-1l-2 1v1h1.5v4H13z"></path></svg>';
+
+    // --- FULLSCREEN PLAYER TOGGLE FUNCTIONS ---
+    function openFullscreenPlayer() {
+        fullscreenPlayerContainer.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+    }
+
+    function closeFullscreenPlayer() {
+        fullscreenPlayerContainer.classList.remove('active');
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+
+    // Open fullscreen when clicking album art in player bar
+    if (nowPlayingArt) {
+        nowPlayingArt.addEventListener('click', openFullscreenPlayer);
+        nowPlayingArt.style.cursor = 'pointer';
+        nowPlayingArt.title = 'Click to open fullscreen player';
+    }
+
+    // Close fullscreen when clicking close button
+    if (npCloseBtn) {
+        npCloseBtn.addEventListener('click', closeFullscreenPlayer);
+    }
+
+    // Close fullscreen when pressing Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && fullscreenPlayerContainer.classList.contains('active')) {
+            closeFullscreenPlayer();
+        }
+    });
 
     const likeBtn = document.getElementById('like-btn'); // Get like button here
     // --- INITIAL LOAD FAVORITES FUNCTION ---
@@ -612,10 +726,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     audioPlayer.addEventListener('play', () => {
         mainPlayPauseBtn.innerHTML = pauseIconSVG;
+        if (npFullscreenPlayPauseBtn) npFullscreenPlayPauseBtn.innerHTML = pauseIconFullscreenSVG;
         savePlayerState();
     });
     audioPlayer.addEventListener('pause', () => {
         mainPlayPauseBtn.innerHTML = playIconSVG;
+        if (npFullscreenPlayPauseBtn) npFullscreenPlayPauseBtn.innerHTML = playIconFullscreenSVG;
         savePlayerState();
     });
 
@@ -624,6 +740,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isNaN(audioPlayer.duration)) return;
         progressBar.value = audioPlayer.currentTime;
         currentTimeEl.textContent = window.formatTime(audioPlayer.currentTime);
+        
+        // Update fullscreen player progress
+        if (npFullscreenProgressBar) npFullscreenProgressBar.value = audioPlayer.currentTime;
+        if (npFullscreenCurrentTime) npFullscreenCurrentTime.textContent = window.formatTime(audioPlayer.currentTime);
         
         // Save state every 1 second during playback for near-instant recovery
         const currentTime = audioPlayer.currentTime;
@@ -636,7 +756,41 @@ document.addEventListener('DOMContentLoaded', () => {
     audioPlayer.addEventListener('loadedmetadata', () => {
         progressBar.max = audioPlayer.duration;
         totalTimeEl.textContent = window.formatTime(audioPlayer.duration);
+        
+        // Update fullscreen player metadata
+        if (npFullscreenProgressBar) npFullscreenProgressBar.max = audioPlayer.duration;
+        if (npFullscreenTotalTime) npFullscreenTotalTime.textContent = window.formatTime(audioPlayer.duration);
     });
+
+    // --- FULLSCREEN PLAYER CONTROLS ---
+    // Fullscreen play/pause button
+    if (npFullscreenPlayPauseBtn) {
+        npFullscreenPlayPauseBtn.addEventListener('click', () => {
+            if (!audioPlayer.src) {
+                if (currentQueue.length > 0) playSongByIndex(0);
+                else showNotification("Please select a song", 'error');
+                return;
+            }
+            audioPlayer.paused ? audioPlayer.play() : audioPlayer.pause();
+        });
+    }
+
+    // Fullscreen progress bar
+    if (npFullscreenProgressBar) {
+        npFullscreenProgressBar.addEventListener('input', (e) => {
+            if (audioPlayer.src) {
+                audioPlayer.currentTime = e.target.value;
+            }
+        });
+    }
+
+    // Fullscreen prev/next buttons
+    if (npFullscreenPrevBtn) {
+        npFullscreenPrevBtn.addEventListener('click', playPrev);
+    }
+    if (npFullscreenNextBtn) {
+        npFullscreenNextBtn.addEventListener('click', playNext);
+    }
 
     audioPlayer.addEventListener('ended', () => {
         if (repeatMode === 'one') {

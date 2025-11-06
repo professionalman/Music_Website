@@ -338,6 +338,13 @@ button:hover {
     margin-right: 12px;
     border-radius: 4px;
     background-color: #333;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.player-bar .song-info img#now-playing-art:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(29, 185, 84, 0.4);
 }
 
 .player-bar .song-info .text-details h4#now-playing-title {

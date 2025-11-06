@@ -22,7 +22,8 @@ const app = express();
 
 // --- APP CONFIGURATION ---
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '100mb' })); // Increase JSON body limit
+app.use(express.urlencoded({ limit: '100mb', extended: true })); // Increase URL-encoded body limit
 
 // 1. Configure EJS as the view engine
 app.set('view engine', 'ejs');
@@ -31,7 +32,30 @@ app.set('views', path.join(__dirname, 'views'));
 
 // 3. Configure the Public folder to serve static files (CSS, JS, images)
 // This points Express to the `public` directory one level up
-app.use(express.static(path.join(__dirname, '../public')));
+// Configure MIME types for audio files, especially M4A
+const serveStatic = express.static(path.join(__dirname, '../public'), {
+    setHeaders: (res, filePath) => {
+        // Set correct MIME type for M4A files
+        if (filePath.endsWith('.m4a')) {
+            res.setHeader('Content-Type', 'audio/mp4');
+        } else if (filePath.endsWith('.mp3')) {
+            res.setHeader('Content-Type', 'audio/mpeg');
+        } else if (filePath.endsWith('.flac')) {
+            res.setHeader('Content-Type', 'audio/flac');
+        } else if (filePath.endsWith('.ogg')) {
+            res.setHeader('Content-Type', 'audio/ogg');
+        } else if (filePath.endsWith('.wav')) {
+            res.setHeader('Content-Type', 'audio/wav');
+        } else if (filePath.endsWith('.aac')) {
+            res.setHeader('Content-Type', 'audio/aac');
+        } else if (filePath.endsWith('.webm')) {
+            res.setHeader('Content-Type', 'audio/webm');
+        } else if (filePath.endsWith('.opus')) {
+            res.setHeader('Content-Type', 'audio/opus');
+        }
+    }
+});
+app.use(serveStatic);
 
 // --- API Routes ---
 app.use('/api/auth', authRoutes);
