@@ -399,6 +399,51 @@ router.delete('/artists/:id', protect, adminOnly, async (req, res) => {
 
         console.log('[DELETE ARTIST] Artist found, type:', artistType);
 
+        // CASCADE DELETE: Find and delete all songs by this artist
+        try {
+            const artistSongs = await Song.find({ artistId: artistId });
+            console.log(`[DELETE ARTIST] Found ${artistSongs.length} songs by this artist`);
+            
+            if (artistSongs.length > 0) {
+                for (const song of artistSongs) {
+                    // Delete audio file
+                    if (song.audioUrl) {
+                        const audioPath = path.join(publicRoot, song.audioUrl);
+                        try {
+                            if (fs.existsSync(audioPath)) {
+                                fs.unlinkSync(audioPath);
+                                console.log('[DELETE ARTIST] Deleted audio file:', audioPath);
+                            }
+                        } catch (fsErr) {
+                            console.warn('[DELETE ARTIST] Warning: failed to delete audio:', fsErr.message);
+                        }
+                    }
+                    
+                    // Delete cover image (if not default and not shared)
+                    if (song.coverUrl && 
+                        !song.coverUrl.includes('default') && 
+                        !song.coverUrl.includes('holder')) {
+                        const coverPath = path.join(publicRoot, song.coverUrl);
+                        try {
+                            if (fs.existsSync(coverPath)) {
+                                fs.unlinkSync(coverPath);
+                                console.log('[DELETE ARTIST] Deleted cover image:', coverPath);
+                            }
+                        } catch (fsErr) {
+                            console.warn('[DELETE ARTIST] Warning: failed to delete cover:', fsErr.message);
+                        }
+                    }
+                }
+                
+                // Delete all song records from database
+                const deleteResult = await Song.deleteMany({ artistId: artistId });
+                console.log(`[DELETE ARTIST] Deleted ${deleteResult.deletedCount} songs from database`);
+            }
+        } catch (songErr) {
+            console.error('[DELETE ARTIST] Error deleting songs:', songErr.message);
+            // Continue with artist deletion even if song deletion fails
+        }
+
         // Delete avatar if exists and is not default
         const avatarUrl = artist.avatarUrl || artist.avatar;
         if (avatarUrl && 

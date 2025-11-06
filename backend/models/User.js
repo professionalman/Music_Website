@@ -8,15 +8,15 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Please enter a username'],
         unique: true,
-        trim: true,
-        lowercase: true
+        trim: true
+        // lowercase: true  // Removed so usernames can have capital letters
     },
     email: {
         type: String,
         required: [true, 'Please enter an email address'],
         unique: true,
         trim: true,
-        lowercase: true,
+        lowercase: true,  // Keep lowercase for email (emails should be case-insensitive)
         match: [/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, 'Please enter a valid email address']
     },
     // --- START NEW FIELD ---

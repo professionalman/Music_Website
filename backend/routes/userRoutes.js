@@ -12,11 +12,17 @@ const multer = require('multer'); // Import multer for error checking
 // @route   PUT /api/user/update
 // @access  Private
 router.put('/update', protect, async (req, res) => {
+    console.log('[UPDATE USER] Request body:', req.body);
+    console.log('[UPDATE USER] User ID:', req.user._id);
+    
     const user = await User.findById(req.user._id);
 
     if (user) {
         // Check if the new username/email already exists (excluding the current user)
         const { username, email } = req.body;
+        
+        console.log('[UPDATE USER] Current username:', user.username, '-> New username:', username);
+        console.log('[UPDATE USER] Current email:', user.email, '-> New email:', email);
         
         const existingUser = await User.findOne({ 
             $or: [{ username }, { email }], 
@@ -24,6 +30,7 @@ router.put('/update', protect, async (req, res) => {
         });
 
         if (existingUser) {
+            console.log('[UPDATE USER] Conflict! Username or email already exists');
             return res.status(400).json({ message: "Username or Email is already in use." });
         }
 
@@ -33,6 +40,8 @@ router.put('/update', protect, async (req, res) => {
         
         const updatedUser = await user.save();
         
+        console.log('[UPDATE USER] Successfully updated to:', updatedUser.username, updatedUser.email);
+        
         // Return the updated user info (without password)
         res.json({
             _id: updatedUser._id,
@@ -40,6 +49,7 @@ router.put('/update', protect, async (req, res) => {
             email: updatedUser.email
         });
     } else {
+        console.log('[UPDATE USER] User not found');
         res.status(404).json({ message: 'User not found' });
     }
 });
