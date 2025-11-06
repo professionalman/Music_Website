@@ -128,15 +128,40 @@ document.addEventListener('DOMContentLoaded', () => {
             // Update successful!
             window.showNotification('Information updated successfully!');
 
-            // Update info in localStorage again
-            userInfo.username = data.username;
-            userInfo.email = data.email;
-            localStorage.setItem('userInfo', JSON.stringify(userInfo));
+            // Update info in localStorage with the response data
+            const updatedUserInfo = JSON.parse(localStorage.getItem('userInfo'));
+            updatedUserInfo.username = data.username;
+            updatedUserInfo.email = data.email;
+            localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
 
-            // Reload page for sidebar to update new name
-            window.location.reload();
+            // Update the form fields with new values
+            usernameInput.value = data.username;
+            emailInput.value = data.email;
+
+            // Update sidebar username - target the correct element
+            const sidebarProfileName = document.querySelector('#sidebar-container .profile-name');
+            console.log('Looking for sidebar element, found:', sidebarProfileName);
+            
+            if (sidebarProfileName) {
+                sidebarProfileName.textContent = data.username;
+                console.log('Successfully updated sidebar username to:', data.username);
+            } else {
+                console.warn('Sidebar profile name element not found. Sidebar HTML:', 
+                    document.querySelector('#sidebar-container')?.innerHTML.substring(0, 500));
+            }
+
+            // Update welcome message if it exists (on main page)
+            const welcomeUser = document.getElementById('welcome-user');
+            if (welcomeUser) {
+                welcomeUser.textContent = data.username;
+                console.log('Updated welcome message to:', data.username);
+            }
+
+            console.log('Username updated successfully to:', data.username);
+            console.log('localStorage userInfo after update:', JSON.parse(localStorage.getItem('userInfo')));
 
         } catch (error) {
+            console.error('Update error:', error);
             window.showNotification(`Error: ${error.message}`, 'error');
         } finally {
             submitButton.disabled = false;
